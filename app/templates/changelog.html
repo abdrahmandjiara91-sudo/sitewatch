@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Changelog - SiteWatch</title>
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
+        .nav { background: #1e293b; border-bottom: 1px solid #334155; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .nav-brand { color: #3b82f6; font-size: 1.25rem; font-weight: 700; text-decoration: none; }
+        .nav-links a { color: #94a3b8; text-decoration: none; margin-left: 1.5rem; font-size: 0.9rem; }
+        .nav-links a:hover { color: #e2e8f0; }
+        .container { max-width: 700px; margin: 2rem auto; padding: 0 1.5rem; }
+        h1 { font-size: 1.75rem; margin-bottom: 0.5rem; }
+        .subtitle { color: #64748b; margin-bottom: 2rem; }
+        .timeline { position: relative; padding-left: 2rem; }
+        .timeline::before { content: ''; position: absolute; left: 7px; top: 0; bottom: 0; width: 2px; background: #334155; }
+        .entry { position: relative; margin-bottom: 2rem; }
+        .entry::before { content: ''; position: absolute; left: -2rem; top: 6px; width: 12px; height: 12px; border-radius: 50%; background: #3b82f6; border: 2px solid #0f172a; }
+        .entry-tag { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.5rem; }
+        .tag-feature { background: rgba(34,197,94,0.15); color: #22c55e; }
+        .tag-fix { background: rgba(239,68,68,0.15); color: #ef4444; }
+        .tag-improve { background: rgba(59,130,246,0.15); color: #3b82f6; }
+        .tag-security { background: rgba(234,179,8,0.15); color: #eab308; }
+        .entry h3 { font-size: 1.05rem; margin-bottom: 0.25rem; }
+        .entry p { color: #94a3b8; font-size: 0.9rem; line-height: 1.5; }
+        .entry-date { color: #475569; font-size: 0.8rem; margin-top: 0.25rem; }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="/landing" class="nav-brand">SiteWatch</a>
+        <div class="nav-links">
+            <a href="/landing">Home</a>
+            <a href="/login">Login</a>
+            <a href="/register">Register</a>
+        </div>
+    </nav>
+    <div class="container">
+        <h1>Changelog</h1>
+        <p class="subtitle">What's new in SiteWatch</p>
+
+        <div class="timeline">
+            <div class="entry">
+                <span class="entry-tag tag-feature">Feature</span>
+                <h3>Statistics Dashboard</h3>
+                <p>View uptime percentages, average response times, and per-site breakdowns in a new dedicated stats page.</p>
+                <div class="entry-date">July 2026</div>
+            </div>
+            <div class="entry">
+                <span class="entry-tag tag-feature">Feature</span>
+                <h3>Email Verification &amp; Password Reset</h3>
+                <p>Verify your email address on signup. Reset forgotten passwords via email codes.</p>
+                <div class="entry-date">July 2026</div>
+            </div>
+            <div class="entry">
+                <span class="entry-tag tag-feature">Feature</span>
+                <h3>Database Backup</h3>
+                <p>Download a complete backup of your monitoring data from the Settings page.</p>
+                <div class="entry-date">July 2026</div>
+            </div>
+            <div class="entry">
+                <span class="entry-tag tag-feature">Feature</span>
+                <h3>Dark / Light Mode</h3>
+                <p>Toggle between dark and light themes. Your preference is saved locally.</p>
+                <div class="entry-date">July 2026</div>
+            </div>
+            <div class="entry">
+                <span class="entry-tag tag-feature">Feature</span>
+                <h3>Audio Alerts</h3>
+                <p>Play a sound notification when a site goes down (opt-in from Settings).</p>
+                <div class="entry-date">July 2026</div>
+            </div>
+            <div class="entry">
+                <span class="entry-tag tag-feature">Feature</span>
+                <h3>Desktop App (PWA)</h3>
+                <p>Install SiteWatch as a desktop application. No black terminal windows needed.</p>
+                <div class="entry-date">July 2026</div>
+            </div>
+            <div class="entry">
+                <span class="entry-tag tag-feature">Feature</span>
+                <h3>Telegram Notifications</h3>
+                <p>Get instant alerts via Telegram when your sites go up or down.</p>
+                <div class="entry-date">July 2026</div>
+            </div>
+            <div class="entry">
+                <span class="entry-tag tag-feature">Feature</span>
+                <h3>API Keys</h3>
+                <p>Generate API keys to access your monitoring data programmatically.</p>
+                <div class="entry-date">July 2026</div>
+            </div>
+            <div class="entry">
+                <span class="entry-tag tag-feature">Feature</span>
+                <h3>Bulk Import Sites</h3>
+                <p>Import multiple sites at once via CSV format.</p>
+                <div class="entry-date">July 2026</div>
+            </div>
+            <div class="entry">
+                <span class="entry-tag tag-feature">Feature</span>
+                <h3>CSV Export Reports</h3>
+                <p>Export site check history as CSV files for offline analysis.</p>
+                <div class="entry-date">July 2026</div>
+            </div>
+            <div class="entry">
+                <span class="entry-tag tag-security">Security</span>
+                <h3>CSRF Protection</h3>
+                <p>All forms are now protected with HMAC-signed CSRF tokens.</p>
+                <div class="entry-date">July 2026</div>
+            </div>
+            <div class="entry">
+                <span class="entry-tag tag-security">Security</span>
+                <h3>Encrypted API Keys</h3>
+                <p>API keys are stored as SHA-256 hashes. Telegram chat IDs encrypted with AES-128.</p>
+                <div class="entry-date">July 2026</div>
+            </div>
+            <div class="entry">
+                <span class="entry-tag tag-improve">Improvement</span>
+                <h3>Rate Limiting</h3>
+                <p>All endpoints are rate-limited to prevent abuse and protect server resources.</p>
+                <div class="entry-date">July 2026</div>
+            </div>
+            <div class="entry">
+                <span class="entry-tag tag-improve">Improvement</span>
+                <h3>Custom Check Intervals</h3>
+                <p>Set different monitoring intervals per site based on your plan.</p>
+                <div class="entry-date">July 2026</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

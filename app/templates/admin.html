@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - SiteWatch</title>
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" href="/static/icon-192.png">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0a0a0a; color: #e2e8f0; min-height: 100vh; }
+        .header { background: #111; border-bottom: 1px solid #333; padding: 0.8rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 1.3rem; color: #c084fc; }
+        .header a { color: #94a3b8; text-decoration: none; font-size: 0.85rem; }
+        .header a:hover { color: #e2e8f0; }
+        .container { max-width: 1100px; margin: 1.5rem auto; padding: 0 1rem; }
+
+        .revenue-banner { background: linear-gradient(135deg, #1a0533, #2d1b69); border: 1px solid #7c3aed33; border-radius: 12px; padding: 1.5rem 2rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+        .revenue-banner .revenue-text h3 { color: #c084fc; font-size: 0.9rem; margin-bottom: 0.3rem; }
+        .revenue-banner .revenue-val { font-size: 2.5rem; font-weight: 700; color: #e2e8f0; }
+        .revenue-banner .revenue-val span { font-size: 1rem; color: #64748b; font-weight: 400; }
+
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+        .stat-card { background: #111; border: 1px solid #333; border-radius: 12px; padding: 1.2rem; text-align: center; }
+        .stat-card .val { font-size: 2rem; font-weight: 700; }
+        .stat-card .label { font-size: 0.8rem; color: #64748b; margin-top: 0.3rem; }
+        .purple { color: #c084fc; }
+        .green { color: #4ade80; }
+        .blue { color: #60a5fa; }
+        .yellow { color: #facc15; }
+
+        .plans-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+        .plan-stat { background: #111; border: 1px solid #333; border-radius: 12px; padding: 1rem; text-align: center; }
+        .plan-stat .plan-name { font-size: 0.85rem; color: #64748b; margin-bottom: 0.3rem; }
+        .plan-stat .plan-count { font-size: 1.5rem; font-weight: 700; }
+        .plan-stat.free { border-left: 3px solid #64748b; }
+        .plan-stat.pro { border-left: 3px solid #60a5fa; }
+        .plan-stat.enterprise { border-left: 3px solid #c084fc; }
+
+        .table-wrapper { background: #111; border: 1px solid #333; border-radius: 12px; overflow: hidden; }
+        .table-header { padding: 1rem 1.5rem; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
+        .table-header h2 { font-size: 1.1rem; color: #94a3b8; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 0.75rem 1rem; border-bottom: 1px solid #333; color: #64748b; font-size: 0.75rem; text-transform: uppercase; }
+        td { padding: 0.8rem 1rem; border-bottom: 1px solid #1a1a1a; font-size: 0.85rem; }
+        tr:hover td { background: #0a0a0a; }
+
+        .btn { padding: 0.35rem 0.7rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; border: none; transition: background 0.2s; text-decoration: none; display: inline-block; }
+        .btn-save { background: #16a34a; color: #fff; }
+        .btn-save:hover { background: #22c55e; }
+        .btn-danger { background: #dc2626; color: #fff; }
+        .btn-danger:hover { background: #ef4444; }
+        .btn-sm { padding: 0.25rem 0.5rem; font-size: 0.75rem; }
+
+        select { background: #0a0a0a; border: 1px solid #333; color: #e2e8f0; padding: 0.35rem 0.5rem; border-radius: 6px; font-size: 0.8rem; }
+        select:focus { outline: none; border-color: #c084fc; }
+
+        .admin-badge { color: #c084fc; font-weight: 600; font-size: 0.75rem; background: #7c3aed22; padding: 0.15rem 0.5rem; border-radius: 4px; }
+        .user-badge { color: #64748b; font-size: 0.75rem; background: #333; padding: 0.15rem 0.5rem; border-radius: 4px; }
+        .plan-free { color: #94a3b8; }
+        .plan-pro { color: #60a5fa; }
+        .plan-enterprise { color: #c084fc; }
+
+        .empty { text-align: center; padding: 3rem; color: #475569; }
+
+        @media (max-width: 768px) {
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .plans-bar { grid-template-columns: 1fr; }
+            .revenue-banner { flex-direction: column; text-align: center; gap: 1rem; }
+            .header { flex-direction: column; gap: 0.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>&#9881; Admin Panel</h1>
+        <div>
+            <a href="/dashboard">Dashboard</a> &nbsp;|&nbsp;
+            <form method="POST" action="/logout" style="display:inline"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button type="submit" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:0.85rem;padding:0;">Logout</button></form>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="revenue-banner">
+            <div class="revenue-text">
+                <h3>Estimated Monthly Revenue</h3>
+                <div class="revenue-val">${{ total_revenue }}<span>/month</span></div>
+            </div>
+            <div style="text-align:right; color:#94a3b8; font-size:0.85rem;">
+                <div>{{ pro_users }} Pro x $9 = ${{ pro_users * 9 }}</div>
+                <div>{{ ent_users }} Enterprise x $29 = ${{ ent_users * 29 }}</div>
+            </div>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="val purple">{{ total_users }}</div>
+                <div class="label">Total Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="val blue">{{ total_sites }}</div>
+                <div class="label">Total Sites</div>
+            </div>
+            <div class="stat-card">
+                <div class="val green">{{ total_checks }}</div>
+                <div class="label">Total Checks</div>
+            </div>
+            <div class="stat-card">
+                <div class="val yellow">{{ total_revenue }}</div>
+                <div class="label">Revenue ($)</div>
+            </div>
+        </div>
+
+        <div class="plans-bar">
+            <div class="plan-stat free">
+                <div class="plan-name">Free Users</div>
+                <div class="plan-count" style="color:#94a3b8">{{ free_users }}</div>
+            </div>
+            <div class="plan-stat pro">
+                <div class="plan-name">Pro Users ($9/mo)</div>
+                <div class="plan-count" style="color:#60a5fa">{{ pro_users }}</div>
+            </div>
+            <div class="plan-stat enterprise">
+                <div class="plan-name">Enterprise Users ($29/mo)</div>
+                <div class="plan-count" style="color:#c084fc">{{ ent_users }}</div>
+            </div>
+        </div>
+
+        <div class="table-wrapper">
+            <div class="table-header">
+                <h2>All Users ({{ total_users }})</h2>
+            </div>
+            {% if all_users %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Plan</th>
+                        <th>Sites</th>
+                        <th>Checks</th>
+                        <th>Joined</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in all_users %}
+                    <tr>
+                        <td>{{ u.id }}</td>
+                        <td>{{ u.username }}</td>
+                        <td>{{ u.email }}</td>
+                        <td>
+                            {% if u.is_admin %}
+                            <span class="admin-badge">ADMIN</span>
+                            {% else %}
+                            <form method="POST" action="/admin/user/{{ u.id }}/plan" style="display:inline">
+<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                <select name="plan" onchange="this.form.submit()">
+                                    {% for pk, pv in plans.items() %}
+                                    <option value="{{ pk }}" {{ 'selected' if u.plan == pk }}>{{ pv.name }} ${{ pv.price }}</option>
+                                    {% endfor %}
+                                </select>
+                            </form>
+                            {% endif %}
+                        </td>
+                        <td>{{ u.site_count }}</td>
+                        <td>{{ u.check_count }}</td>
+                        <td>{{ u.created_at.strftime('%Y-%m-%d') if u.created_at else '-' }}</td>
+                        <td>
+                            {% if not u.is_admin %}
+                            <form method="POST" action="/admin/user/{{ u.id }}/delete" style="display:inline" onsubmit="return confirm('Delete this user and all their data?')">
+<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                <button class="btn btn-danger btn-sm">Delete</button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty">
+                <p>No users registered yet.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/static/service-worker.js');
+        }
+    </script>
+</body>
+</html>

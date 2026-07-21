@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ site.name }} - SiteWatch</title>
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" href="/static/icon-192.png">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
+        .header { background: #1e293b; border-bottom: 1px solid #334155; padding: 0.8rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 1.3rem; color: #38bdf8; }
+        .header-nav { display: flex; gap: 1rem; }
+        .header-nav a { color: #94a3b8; text-decoration: none; font-size: 0.85rem; }
+        .header-nav a:hover { color: #e2e8f0; }
+        .container { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
+
+        .site-info { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .site-info h2 { color: #38bdf8; margin-bottom: 0.5rem; }
+        .site-info .url { color: #64748b; font-size: 0.9rem; word-break: break-all; }
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-top: 1rem; }
+        .info-item { text-align: center; }
+        .info-item .val { font-size: 1.5rem; font-weight: 700; }
+        .info-item .label { font-size: 0.75rem; color: #64748b; margin-top: 0.2rem; }
+        .green { color: #4ade80; }
+        .red { color: #f87171; }
+        .blue { color: #38bdf8; }
+
+        .chart-section { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .chart-section h3 { font-size: 1rem; color: #94a3b8; margin-bottom: 1rem; }
+
+        .response-chart { display: flex; align-items: flex-end; gap: 2px; height: 120px; }
+        .bar { flex: 1; min-width: 3px; border-radius: 2px 2px 0 0; transition: height 0.3s; position: relative; }
+        .bar.up { background: #4ade80; }
+        .bar.down { background: #f87171; }
+        .bar:hover { opacity: 0.8; }
+        .bar:hover::after { content: attr(data-tip); position: absolute; bottom: 105%; left: 50%; transform: translateX(-50%); background: #0f172a; border: 1px solid #475569; padding: 0.3rem 0.5rem; border-radius: 4px; font-size: 0.7rem; white-space: nowrap; z-index: 10; }
+
+        .checks-table { width: 100%; border-collapse: collapse; }
+        .checks-table th { text-align: left; padding: 0.75rem; border-bottom: 2px solid #334155; color: #64748b; font-size: 0.8rem; text-transform: uppercase; }
+        .checks-table td { padding: 0.6rem 0.75rem; border-bottom: 1px solid #1e293b; font-size: 0.85rem; }
+        .checks-table tr:hover td { background: #0f172a; }
+        .badge { padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+        .badge-up { background: #166534; color: #4ade80; }
+        .badge-down { background: #7f1d1d; color: #f87171; }
+        .ssl-badge { font-size: 0.7rem; padding: 0.15rem 0.5rem; border-radius: 4px; font-weight: 600; }
+        .ssl-valid { background: #166534; color: #4ade80; }
+        .ssl-expiring { background: #713f12; color: #facc15; }
+        .ssl-expired { background: #7f1d1d; color: #f87171; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{ site.name }}</h1>
+        <div class="header-nav">
+            <a href="/dashboard">&larr; Dashboard</a>
+            <a href="/export/{{ site.id }}" style="color:#38bdf8; font-weight:600;">Export CSV</a>
+            <form method="POST" action="/logout" style="display:inline"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button type="submit" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:0.85rem;padding:0;">Logout</button></form>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="site-info">
+            <h2>{{ site.name }}</h2>
+            <div class="url">{{ site.url }}</div>
+            <div class="info-grid">
+                {% set last = checks[0] if checks else None %}
+                <div class="info-item">
+                    <div class="val {{ 'green' if last and last.is_up else 'red' }}">{{ 'UP' if last and last.is_up else ('DOWN' if last else 'N/A') }}</div>
+                    <div class="label">Status</div>
+                </div>
+                <div class="info-item">
+                    <div class="val blue">{{ last.response_ms if last else '-' }}ms</div>
+                    <div class="label">Response</div>
+                </div>
+                <div class="info-item">
+                    <div class="val blue">{{ checks|selectattr('is_up', 'eq', true)|list|length }}/{{ checks|length }}</div>
+                    <div class="label">Successful</div>
+                </div>
+                <div class="info-item">
+                    <div class="val {{ 'green' if last and last.ssl_valid else 'red' }}">{{ last.ssl_days_left if last and last.ssl_days_left is not none else '-' }}d</div>
+                    <div class="label">SSL Expires</div>
+                </div>
+                <div class="info-item">
+                    <div class="val blue">{{ site.expected_status }}</div>
+                    <div class="label">Expected Status</div>
+                </div>
+                <div class="info-item">
+                    <div class="val blue">{{ site.interval_sec }}s</div>
+                    <div class="label">Interval</div>
+                </div>
+            </div>
+        </div>
+
+        {% if checks %}
+        <div class="chart-section">
+            <h3>Response Time (last {{ checks|length }} checks)</h3>
+            {% set ns = namespace(max_val=1) %}
+            {% for c in checks %}
+                {% if c.response_ms and c.response_ms > ns.max_val %}
+                    {% set ns.max_val = c.response_ms %}
+                {% endif %}
+            {% endfor %}
+            <div class="response-chart">
+                {% for c in checks|reverse %}
+                <div class="bar {{ 'up' if c.is_up else 'down' }}" style="height: {{ ((c.response_ms or 0) / ns.max_val * 100)|int }}%" data-tip="{{ c.response_ms or 0 }}ms - {{ c.checked_at.strftime('%m/%d %H:%M') }}"></div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="chart-section">
+            <h3>Check History</h3>
+            <table class="checks-table">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Status</th>
+                        <th>HTTP</th>
+                        <th>Response</th>
+                        <th>SSL</th>
+                        <th>Error</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in checks %}
+                    <tr>
+                        <td>{{ c.checked_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                        <td><span class="badge {{ 'badge-up' if c.is_up else 'badge-down' }}">{{ 'UP' if c.is_up else 'DOWN' }}</span></td>
+                        <td>{{ c.status_code or '-' }}</td>
+                        <td>{{ c.response_ms or '-' }}ms</td>
+                        <td>
+                            {% if c.ssl_valid is not none %}
+                            <span class="ssl-badge {{ 'ssl-valid' if c.ssl_days_left and c.ssl_days_left > 30 else ('ssl-expiring' if c.ssl_days_left and c.ssl_days_left > 0 else 'ssl-expired') }}">
+                                {{ c.ssl_days_left }}d
+                            </span>
+                            {% else %}-{% endif %}
+                        </td>
+                        <td style="color:#f87171; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ c.error_message or '' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="chart-section" style="text-align:center; color:#475569;">
+            <p>No checks yet. Click "Check Now" on the dashboard.</p>
+        </div>
+        {% endif %}
+    </div>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/static/service-worker.js');
+        }
+    </script>
+</body>
+</html>

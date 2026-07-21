@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistics - SiteWatch</title>
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
+        .nav { background: #1e293b; border-bottom: 1px solid #334155; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .nav-brand { color: #3b82f6; font-size: 1.25rem; font-weight: 700; text-decoration: none; }
+        .nav-links a { color: #94a3b8; text-decoration: none; margin-left: 1.5rem; font-size: 0.9rem; }
+        .nav-links a:hover { color: #e2e8f0; }
+        .nav-links a.active { color: #3b82f6; }
+        .container { max-width: 1000px; margin: 2rem auto; padding: 0 1.5rem; }
+        h1 { font-size: 1.75rem; margin-bottom: 1.5rem; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .stat-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 1.5rem; text-align: center; }
+        .stat-value { font-size: 2rem; font-weight: 700; color: #3b82f6; }
+        .stat-label { color: #94a3b8; font-size: 0.85rem; margin-top: 0.25rem; }
+        .stat-green { color: #22c55e; }
+        .stat-red { color: #ef4444; }
+        .stat-yellow { color: #eab308; }
+        table { width: 100%; border-collapse: collapse; background: #1e293b; border-radius: 12px; overflow: hidden; border: 1px solid #334155; }
+        th, td { padding: 0.875rem 1rem; text-align: left; border-bottom: 1px solid #1e293b; }
+        th { background: #0f172a; color: #94a3b8; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(59, 130, 246, 0.05); }
+        .uptime-bar { height: 8px; border-radius: 4px; background: #334155; overflow: hidden; width: 100px; display: inline-block; vertical-align: middle; margin-right: 8px; }
+        .uptime-fill { height: 100%; border-radius: 4px; }
+        .back-link { display: inline-block; margin-bottom: 1.5rem; color: #3b82f6; text-decoration: none; font-size: 0.9rem; }
+        .back-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="/dashboard" class="nav-brand">SiteWatch</a>
+        <div class="nav-links">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/stats" class="active">Statistics</a>
+            <a href="/settings">Settings</a>
+            <form method="POST" action="/logout" style="display:inline"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button type="submit" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:0.85rem;padding:0;">Logout</button></form>
+        </div>
+    </nav>
+    <div class="container">
+        <a href="/dashboard" class="back-link">&larr; Back to Dashboard</a>
+        <h1>Statistics Overview</h1>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">{{ total_sites }}</div>
+                <div class="stat-label">Total Sites</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value stat-green">{{ up_count }}</div>
+                <div class="stat-label">Sites Online</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value stat-red">{{ down_count }}</div>
+                <div class="stat-label">Sites Down</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ total_checks }}</div>
+                <div class="stat-label">Total Checks</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value stat-yellow">{{ avg_response }}ms</div>
+                <div class="stat-label">Avg Response</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="font-size:1.5rem;">{{ overall_uptime }}%</div>
+                <div class="stat-label">Overall Uptime</div>
+            </div>
+        </div>
+
+        <h2 style="margin-bottom: 1rem; font-size: 1.25rem;">Per-Site Breakdown</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Site</th>
+                    <th>Uptime</th>
+                    <th>Avg Response</th>
+                    <th>Last Check</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in site_stats %}
+                <tr>
+                    <td><strong>{{ s.name }}</strong><br><small style="color:#64748b;">{{ s.url[:40] }}{% if s.url|length > 40 %}...{% endif %}</small></td>
+                    <td>
+                        <div class="uptime-bar">
+                            <div class="uptime-fill" style="width: {{ s.uptime }}%; background: {% if s.uptime >= 99 %}#22c55e{% elif s.uptime >= 95 %}#eab308{% else %}#ef4444{% endif %};"></div>
+                        </div>
+                        {{ s.uptime }}%
+                    </td>
+                    <td>{{ s.avg_response }}ms</td>
+                    <td style="color: #64748b; font-size: 0.85rem;">{{ s.last_check }}</td>
+                </tr>
+                {% endfor %}
+                {% if not site_stats %}
+                <tr><td colspan="4" style="text-align:center; color:#64748b; padding: 2rem;">No sites to show statistics for.</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    <script>
+        if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/static/service-worker.js'); }
+    </script>
+</body>
+</html>

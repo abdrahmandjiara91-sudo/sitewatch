@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - SiteWatch</title>
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" href="/static/icon-192.png">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root, [data-theme="dark"] {
+            --bg: #0f172a; --card: #1e293b; --border: #334155; --text: #e2e8f0;
+            --muted: #94a3b8; --dim: #64748b; --accent: #3b82f6;
+            --sidebar-bg: #1e293b; --sidebar-hover: #334155; --sidebar-active: rgba(59,130,246,0.15);
+        }
+        [data-theme="light"] {
+            --bg: #f1f5f9; --card: #ffffff; --border: #e2e8f0; --text: #0f172a;
+            --muted: #475569; --dim: #94a3b8; --accent: #2563eb;
+            --sidebar-bg: #ffffff; --sidebar-hover: #f1f5f9; --sidebar-active: rgba(37,99,235,0.08);
+        }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; transition: background 0.3s, color 0.3s; }
+
+        /* Sidebar */
+        .sidebar { width: 260px; min-height: 100vh; background: var(--sidebar-bg); border-right: 1px solid var(--border); padding: 1.5rem 0; position: fixed; top: 0; left: 0; transition: background 0.3s; display: flex; flex-direction: column; }
+        .sidebar-brand { padding: 0 1.5rem 1.5rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem; }
+        .sidebar-brand h2 { color: var(--accent); font-size: 1.2rem; display: flex; align-items: center; gap: 0.5rem; }
+        .sidebar-brand p { color: var(--dim); font-size: 0.75rem; margin-top: 0.25rem; }
+        .sidebar-nav { flex: 1; padding: 0 0.75rem; }
+        .nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.7rem 1rem; border-radius: 10px; color: var(--muted); text-decoration: none; font-size: 0.9rem; transition: all 0.2s; cursor: pointer; margin-bottom: 0.25rem; }
+        .nav-item:hover { background: var(--sidebar-hover); color: var(--text); }
+        .nav-item.active { background: var(--sidebar-active); color: var(--accent); font-weight: 600; }
+        .nav-item .icon { width: 20px; text-align: center; font-size: 1rem; flex-shrink: 0; }
+        .nav-divider { height: 1px; background: var(--border); margin: 0.75rem 1rem; }
+        .sidebar-footer { padding: 1rem 1.5rem 0; border-top: 1px solid var(--border); margin-top: auto; }
+        .sidebar-footer a { color: var(--dim); text-decoration: none; font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem; }
+        .sidebar-footer a:hover { color: var(--text); }
+
+        /* Main Content */
+        .main { flex: 1; margin-left: 260px; padding: 2rem; min-height: 100vh; }
+        .page-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem; }
+        .page-subtitle { color: var(--dim); font-size: 0.9rem; margin-bottom: 2rem; }
+        .section { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; transition: background 0.3s; }
+        .section-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border); }
+        .section-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+        .section-icon.blue { background: rgba(59,130,246,0.15); color: #3b82f6; }
+        .section-icon.green { background: rgba(34,197,94,0.15); color: #22c55e; }
+        .section-icon.yellow { background: rgba(234,179,8,0.15); color: #eab308; }
+        .section-icon.purple { background: rgba(168,85,247,0.15); color: #a855f7; }
+        .section-title { font-size: 1rem; font-weight: 600; }
+        .section-desc { font-size: 0.8rem; color: var(--dim); }
+
+        .form-group { margin-bottom: 1.25rem; }
+        .form-group label { display: flex; align-items: center; gap: 0.75rem; font-size: 0.9rem; color: var(--text); cursor: pointer; }
+        .form-group .help { font-size: 0.8rem; color: var(--dim); margin-top: 0.3rem; padding-left: 2.75rem; }
+        .form-group input[type="text"] { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 0.65rem 0.85rem; border-radius: 8px; font-size: 0.9rem; outline: none; transition: border-color 0.2s; }
+        .form-group input[type="text"]:focus { border-color: var(--accent); }
+
+        .toggle { position: relative; width: 44px; height: 24px; appearance: none; background: var(--border); border-radius: 12px; cursor: pointer; transition: background 0.3s; flex-shrink: 0; }
+        .toggle:checked { background: var(--accent); }
+        .toggle::before { content: ''; position: absolute; width: 20px; height: 20px; background: #fff; border-radius: 50%; top: 2px; left: 2px; transition: transform 0.3s; }
+        .toggle:checked::before { transform: translateX(20px); }
+
+        .btn { display: inline-flex; align-items: center; gap: 0.5rem; background: var(--accent); color: #fff; border: none; padding: 0.7rem 1.5rem; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: filter 0.2s; text-decoration: none; }
+        .btn:hover { filter: brightness(1.15); }
+        .btn-green { background: #22c55e; }
+        .btn-green:hover { background: #16a34a; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+        .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+        .btn-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.75rem; }
+
+        .success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: #22c55e; padding: 0.75rem; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1.5rem; text-align: center; }
+        .error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; padding: 0.75rem; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1.5rem; text-align: center; }
+
+        .theme-switch { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 0.35rem 0.7rem; border-radius: 6px; cursor: pointer; font-size: 1rem; transition: all 0.2s; }
+        .theme-switch:hover { border-color: var(--accent); }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main { margin-left: 0; padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <h2>&#9202; SiteWatch</h2>
+            <p>Settings &amp; Preferences</p>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#appearance" class="nav-item active" onclick="showSection('appearance', this)">
+                <span class="icon">&#127748;</span> Appearance
+            </a>
+            <a href="#notifications" class="nav-item" onclick="showSection('notifications', this)">
+                <span class="icon">&#128276;</span> Notifications
+            </a>
+            <a href="#telegram" class="nav-item" onclick="showSection('telegram', this)">
+                <span class="icon">&#9993;</span> Telegram
+            </a>
+            <a href="#audio" class="nav-item" onclick="showSection('audio', this)">
+                <span class="icon">&#128266;</span> Audio Alerts
+            </a>
+            <div class="nav-divider"></div>
+            <a href="#backup" class="nav-item" onclick="showSection('backup', this)">
+                <span class="icon">&#128230;</span> Backup &amp; Data
+            </a>
+            <a href="#account" class="nav-item" onclick="showSection('account', this)">
+                <span class="icon">&#128100;</span> Account
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="/dashboard">&#8592; Back to Dashboard</a>
+        </div>
+    </aside>
+
+    <main class="main">
+        <h1 class="page-title">Settings</h1>
+        <p class="page-subtitle">Manage your account and notification preferences</p>
+
+        {% if message %}
+        <div class="success">{{ message }}</div>
+        {% endif %}
+        {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %}
+
+        <!-- Appearance -->
+        <div id="section-appearance" class="section">
+            <div class="section-header">
+                <div class="section-icon blue">&#127748;</div>
+                <div>
+                    <div class="section-title">Appearance</div>
+                    <div class="section-desc">Customize the look of your dashboard</div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" class="toggle" id="darkModeToggle" onchange="toggleTheme()">
+                    Dark Mode
+                </label>
+                <div class="help">Switch between dark and light theme. Your preference is saved locally.</div>
+            </div>
+        </div>
+
+        <!-- Email Notifications -->
+        <div id="section-notifications" class="section">
+            <div class="section-header">
+                <div class="section-icon green">&#128276;</div>
+                <div>
+                    <div class="section-title">Email Notifications</div>
+                    <div class="section-desc">Get alerts when your sites go down</div>
+                </div>
+            </div>
+            <form method="POST" action="/settings">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" class="toggle" name="notify_email" value="true" {{ 'checked' if user.notify_email }}>
+                        Enable Email Alerts
+                    </label>
+                    <div class="help">You'll receive an email at <strong>{{ user.email }}</strong> when a site goes down or comes back up.</div>
+                </div>
+
+                <!-- Telegram -->
+                <div id="section-telegram" style="scroll-margin-top: 1rem;"></div>
+                <div class="form-group" style="margin-top: 1.25rem;">
+                    <label>
+                        <input type="checkbox" class="toggle" name="notify_telegram" value="true" {{ 'checked' if user.notify_telegram }}>
+                        Enable Telegram Alerts
+                    </label>
+                    <div class="help">Get instant notifications on Telegram — fast and free.</div>
+                </div>
+
+                <div class="form-group">
+                    <label>Telegram Chat ID</label>
+                    <input type="text" name="telegram_chat_id" value="{{ telegram_chat_id_plain or '' }}" placeholder="Paste your Chat ID here">
+                    <div class="help">
+                        How to get your Chat ID:<br>
+                        1. Open Telegram &amp; search <strong>@userinfobot</strong><br>
+                        2. Send <strong>/start</strong><br>
+                        3. Copy the number it replies with
+                    </div>
+                </div>
+
+                <!-- Audio -->
+                <div id="section-audio" style="scroll-margin-top: 1rem;"></div>
+                <div class="form-group" style="margin-top: 1.25rem;">
+                    <label>
+                        <input type="checkbox" class="toggle" name="audio_alert" value="true" {{ 'checked' if user.audio_alert }}>
+                        Enable Audio Alerts
+                    </label>
+                    <div class="help">Play a beep sound in your browser when a monitored site goes down.</div>
+                </div>
+
+                <button type="submit" class="btn">Save All Notification Settings</button>
+            </form>
+        </div>
+
+        <!-- Backup -->
+        <div id="section-backup" class="section">
+            <div class="section-header">
+                <div class="section-icon yellow">&#128230;</div>
+                <div>
+                    <div class="section-title">Backup &amp; Data</div>
+                    <div class="section-desc">Export and protect your monitoring data</div>
+                </div>
+            </div>
+            <p style="color: var(--dim); font-size: 0.85rem; margin-bottom: 0.5rem;">Download a complete copy of your database — sites, check history, API keys, and settings.</p>
+            <p style="color: var(--dim); font-size: 0.8rem; margin-bottom: 1rem;">File format: SQLite (.db) — you can restore it by replacing <code style="background:var(--bg);padding:2px 6px;border-radius:4px;">data/monitor.db</code></p>
+            <div class="btn-row">
+                <a href="/backup/download" class="btn btn-green" style="text-decoration: none;">&#128229; Download Backup</a>
+            </div>
+        </div>
+
+        <!-- Account -->
+        <div id="section-account" class="section">
+            <div class="section-header">
+                <div class="section-icon purple">&#128100;</div>
+                <div>
+                    <div class="section-title">Account</div>
+                    <div class="section-desc">Your account information</div>
+                </div>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div>
+                    <div style="font-size:0.8rem; color:var(--dim); margin-bottom:0.25rem;">Username</div>
+                    <div style="font-size:0.95rem; font-weight:600;">{{ user.username }}</div>
+                </div>
+                <div>
+                    <div style="font-size:0.8rem; color:var(--dim); margin-bottom:0.25rem;">Email</div>
+                    <div style="font-size:0.95rem; font-weight:600;">{{ user.email }}</div>
+                </div>
+                <div>
+                    <div style="font-size:0.8rem; color:var(--dim); margin-bottom:0.25rem;">Plan</div>
+                    <div style="font-size:0.95rem; font-weight:600; text-transform:capitalize;">{{ user.plan }}</div>
+                </div>
+                <div>
+                    <div style="font-size:0.8rem; color:var(--dim); margin-bottom:0.25rem;">Email Verified</div>
+                    <div style="font-size:0.95rem; font-weight:600; color: {% if user.is_verified %}#22c55e{% else %}#ef4444{% endif %};">{% if user.is_verified %}Yes{% else %}No{% endif %}</div>
+                </div>
+            </div>
+            <div class="btn-row" style="margin-top:1.25rem;">
+                <a href="/pricing" class="btn" style="text-decoration:none;">Upgrade Plan</a>
+                <a href="/api-keys" class="btn btn-outline" style="text-decoration:none;">Manage API Keys</a>
+                <form method="POST" action="/logout" style="display:inline"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button type="submit" class="btn btn-outline" style="text-decoration:none; color:#ef4444; border-color:rgba(239,68,68,0.3);">Logout</button></form>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/static/service-worker.js'); }
+
+        function getTheme() { return localStorage.getItem('theme') || 'dark'; }
+        function applyTheme(t) {
+            document.documentElement.setAttribute('data-theme', t);
+            const dm = document.getElementById('darkModeToggle');
+            if (dm) dm.checked = (t === 'dark');
+            const sw = document.querySelector('.theme-switch');
+            if (sw) sw.innerHTML = t === 'dark' ? '&#9790;' : '&#9728;';
+        }
+        function toggleTheme() {
+            const t = getTheme() === 'dark' ? 'light' : 'dark';
+            localStorage.setItem('theme', t);
+            applyTheme(t);
+        }
+        applyTheme(getTheme());
+
+        function showSection(id, el) {
+            const section = document.getElementById('section-' + id);
+            if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            if (el) el.classList.add('active');
+        }
+
+        const hash = window.location.hash.replace('#', '');
+        if (hash) {
+            const el = document.querySelector(`[href="#${hash}"]`);
+            if (el) showSection(hash, el);
+        }
+    </script>
+</body>
+</html>

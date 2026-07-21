@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - SiteWatch</title>
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" href="/static/icon-192.png">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
+
+        .header { background: #1e293b; border-bottom: 1px solid #334155; padding: 0.8rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 1.3rem; color: #38bdf8; }
+        .header-right { display: flex; align-items: center; gap: 0.5rem; }
+        .plan-badge { font-size: 0.7rem; padding: 0.3rem 0.6rem; border-radius: 20px; font-weight: 600; text-transform: uppercase; border: 1px solid; }
+        .plan-free { border-color: #475569; color: #94a3b8; background: rgba(148,163,184,0.08); }
+        .plan-pro { border-color: #3b82f6; color: #60a5fa; background: rgba(59,130,246,0.1); }
+        .plan-enterprise { border-color: #a855f7; color: #c084fc; background: rgba(168,85,247,0.1); }
+        .header-nav { display: flex; gap: 0.4rem; align-items: center; }
+        .header-nav a { color: #94a3b8; text-decoration: none; font-size: 0.8rem; padding: 0.4rem 0.75rem; border-radius: 8px; border: 1px solid #334155; transition: all 0.3s ease; display: flex; align-items: center; gap: 0.35rem; background: rgba(30,41,59,0.5); }
+        .header-nav a:hover { color: #e2e8f0; border-color: #3b82f6; background: rgba(59,130,246,0.1); box-shadow: 0 0 12px rgba(59,130,246,0.3), 0 0 4px rgba(59,130,246,0.2); }
+        .header-nav a.user-btn { border-color: #475569; }
+        .header-nav a.user-btn:hover { border-color: #22c55e; background: rgba(34,197,94,0.1); box-shadow: 0 0 12px rgba(34,197,94,0.3); }
+        .header-nav a.danger { border-color: #475569; }
+        .header-nav a.danger:hover { color: #f87171; border-color: #ef4444; background: rgba(239,68,68,0.1); box-shadow: 0 0 12px rgba(239,68,68,0.3); }
+
+        .container { max-width: 1200px; margin: 1.5rem auto; padding: 0 1rem; }
+
+        .plan-bar { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 1rem 1.5rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+        .plan-bar .plan-text { font-size: 0.9rem; color: #94a3b8; }
+        .plan-bar .plan-text strong { color: #e2e8f0; }
+        .plan-bar a { color: #38bdf8; text-decoration: none; font-size: 0.85rem; font-weight: 600; }
+
+        .add-form { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .add-form h2 { margin-bottom: 1rem; font-size: 1rem; color: #94a3b8; }
+        .form-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+        .form-row input, .form-row select { background: #0f172a; border: 1px solid #475569; color: #e2e8f0; padding: 0.6rem 0.8rem; border-radius: 8px; font-size: 0.9rem; outline: none; }
+        .form-row input:focus { border-color: #38bdf8; }
+        .form-row input[name="name"] { width: 200px; }
+        .form-row input[name="url"] { flex: 1; min-width: 250px; }
+        .form-row input[name="keyword"] { width: 160px; }
+        .form-row label { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; color: #94a3b8; cursor: pointer; }
+        .btn { background: #2563eb; color: #fff; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: background 0.2s; }
+        .btn:hover { background: #3b82f6; }
+        .btn-sm { padding: 0.35rem 0.7rem; font-size: 0.8rem; border-radius: 6px; }
+        .btn-danger { background: #dc2626; }
+        .btn-danger:hover { background: #ef4444; }
+        .btn-outline { background: transparent; border: 1px solid #475569; color: #94a3b8; }
+        .btn-outline:hover { background: #1e293b; border-color: #64748b; }
+        .btn-success { background: #16a34a; }
+        .btn-success:hover { background: #22c55e; }
+
+        .error-msg { background: #7f1d1d; color: #fca5a5; padding: 0.75rem; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1rem; }
+
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; margin-bottom: 1.5rem; }
+        .stat-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 1rem; text-align: center; }
+        .stat-card .val { font-size: 1.8rem; font-weight: 700; }
+        .stat-card .label { font-size: 0.75rem; color: #64748b; margin-top: 0.2rem; }
+        .stat-green { color: #4ade80; }
+        .stat-red { color: #f87171; }
+        .stat-blue { color: #38bdf8; }
+
+        .sites-grid { display: flex; flex-direction: column; gap: 0.75rem; }
+
+        .site-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 1.25rem; display: flex; align-items: center; gap: 1rem; transition: border-color 0.2s; }
+        .site-card:hover { border-color: #475569; }
+        .site-card.down { border-left: 3px solid #f87171; }
+        .site-card.up { border-left: 3px solid #4ade80; }
+        .site-card.disabled { opacity: 0.5; }
+
+        .status-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+        .status-dot.up { background: #4ade80; box-shadow: 0 0 8px #4ade8066; }
+        .status-dot.down { background: #f87171; box-shadow: 0 0 8px #f8717166; }
+        .status-dot.pending { background: #facc15; }
+
+        .site-info { flex: 1; min-width: 0; }
+        .site-name { font-weight: 600; font-size: 1rem; color: #f1f5f9; }
+        .site-url { font-size: 0.8rem; color: #64748b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .site-meta { display: flex; gap: 1.5rem; font-size: 0.8rem; color: #94a3b8; margin-top: 0.4rem; flex-wrap: wrap; }
+        .site-meta span { display: flex; align-items: center; gap: 0.3rem; }
+
+        .site-actions { display: flex; gap: 0.5rem; flex-shrink: 0; flex-wrap: wrap; }
+
+        .uptime-bar { width: 100px; height: 6px; background: #334155; border-radius: 3px; overflow: hidden; }
+        .uptime-fill { height: 100%; border-radius: 3px; }
+        .uptime-fill.good { background: #4ade80; }
+        .uptime-fill.warn { background: #facc15; }
+        .uptime-fill.bad { background: #f87171; }
+
+        .ssl-badge { font-size: 0.7rem; padding: 0.15rem 0.5rem; border-radius: 4px; font-weight: 600; }
+        .ssl-valid { background: #166534; color: #4ade80; }
+        .ssl-expiring { background: #713f12; color: #facc15; }
+        .ssl-expired { background: #7f1d1d; color: #f87171; }
+
+        .empty { text-align: center; padding: 4rem; color: #475569; }
+        .empty h3 { font-size: 1.2rem; margin-bottom: 0.5rem; }
+
+        .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:100; align-items:center; justify-content:center; }
+        .modal.active { display:flex; }
+        .modal-box { background:#1e293b; border:1px solid #334155; border-radius:12px; padding:1.5rem; width:90%; max-width:600px; }
+        .modal-box h2 { font-size:1rem; color:#94a3b8; margin-bottom:0.75rem; }
+        .modal-box textarea { width:100%; height:200px; background:#0f172a; border:1px solid #475569; color:#e2e8f0; padding:0.8rem; border-radius:8px; font-family:monospace; font-size:0.85rem; resize:vertical; outline:none; }
+        .modal-box textarea:focus { border-color:#38bdf8; }
+        .modal-box .help { font-size:0.8rem; color:#64748b; margin:0.5rem 0; }
+        .modal-actions { display:flex; gap:0.5rem; justify-content:flex-end; margin-top:0.75rem; }
+
+        @media (max-width: 768px) {
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .site-card { flex-direction: column; align-items: flex-start; }
+            .site-actions { width: 100%; justify-content: flex-end; }
+            .form-row input[name="name"] { width: 100%; }
+            .header { flex-direction: column; gap: 0.5rem; padding: 0.8rem 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>&#9202; SiteWatch</h1>
+        <div class="header-right">
+            <span class="plan-badge plan-{{ user.plan }}">{{ plan.name }}</span>
+            <div class="header-nav">
+                <a href="/stats">&#128200; Statistics</a>
+                <a href="/pricing">&#128176; Pricing</a>
+                <a href="/settings">&#9881; Settings</a>
+                <a href="/api-keys">&#128273; API Keys</a>
+                {% if user.is_admin %}<a href="/admin">&#128737; Admin</a>{% endif %}
+                <a href="#" class="user-btn">&#128100; {{ user.username }}</a>
+                <form method="POST" action="/logout" style="display:inline"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button type="submit" class="danger" style="background:none;border:none;cursor:pointer;padding:0;font:inherit;">&#128682; Logout</button></form>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="plan-bar">
+            <div class="plan-text">
+                <strong>{{ plan.name }} Plan</strong> &mdash; {{ sites_count }}/{{ max_sites }} sites monitored
+            </div>
+            {% if user.plan == "free" %}
+            <a href="/pricing">Upgrade &rarr;</a>
+            {% endif %}
+        </div>
+
+        {% if error is defined and error %}
+        <div class="error-msg">{{ error }}</div>
+        {% endif %}
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="val stat-blue">{{ sites_count }}</div>
+                <div class="label">Total Sites</div>
+            </div>
+            <div class="stat-card">
+                <div class="val stat-green">{{ sites|selectattr('last_check.is_up', 'eq', true)|list|length }}</div>
+                <div class="label">Sites Up</div>
+            </div>
+            <div class="stat-card">
+                <div class="val stat-red">{{ sites|selectattr('last_check.is_up', 'eq', false)|list|length }}</div>
+                <div class="label">Sites Down</div>
+            </div>
+            <div class="stat-card">
+                <div class="val stat-blue">{{ plan.interval }}s</div>
+                <div class="label">Check Interval</div>
+            </div>
+        </div>
+
+        {% if sites_count < max_sites %}
+        <div class="add-form">
+            <h2>+ Add Website</h2>
+            <form method="POST" action="/sites/add">
+<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <div class="form-row">
+                    <input name="name" placeholder="Site Name" required maxlength="200">
+                    <input name="url" placeholder="https://example.com" required maxlength="2000">
+                    <input name="keyword" placeholder="Keyword (optional)" maxlength="500">
+                    <input name="expected_status" type="number" value="200" style="width:80px" title="Expected HTTP status">
+                    <label><input type="checkbox" name="check_ssl" value="true"> SSL</label>
+                    <button type="submit" class="btn">Add</button>
+                </div>
+            </form>
+        </div>
+        {% endif %}
+
+        {% if sites %}
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+            <h2 style="font-size:1rem; color:#94a3b8;">Your Sites</h2>
+            {% if sites_count < max_sites %}
+            <button onclick="document.getElementById('bulkModal').classList.add('active')" class="btn btn-sm btn-outline">Bulk Import</button>
+            {% endif %}
+        </div>
+        <div class="sites-grid">
+            {% for item in sites %}
+            <div class="site-card {{ 'up' if item.last_check and item.last_check.is_up else ('down' if item.last_check else 'pending') }} {{ 'disabled' if not item.site.enabled }}">
+                <div class="status-dot {{ 'up' if item.last_check and item.last_check.is_up else ('down' if item.last_check else 'pending') }}"></div>
+
+                <div class="site-info">
+                    <div class="site-name">{{ item.site.name }}</div>
+                    <div class="site-url">{{ item.site.url }}</div>
+                    <div class="site-meta">
+                        <span>
+                            <div class="uptime-bar">
+                                <div class="uptime-fill {{ 'good' if item.uptime >= 99 else ('warn' if item.uptime >= 90 else 'bad') }}" style="width: {{ item.uptime }}%"></div>
+                            </div>
+                            {{ item.uptime }}% uptime
+                        </span>
+                        {% if item.last_check %}
+                        <span>{{ item.last_check.response_ms }}ms</span>
+                        <span>{{ item.total_checks }} checks</span>
+                        {% if item.last_check.ssl_valid is not none %}
+                        <span class="ssl-badge {{ 'ssl-valid' if item.last_check.ssl_days_left and item.last_check.ssl_days_left > 30 else ('ssl-expiring' if item.last_check.ssl_days_left and item.last_check.ssl_days_left > 0 else 'ssl-expired') }}">
+                            SSL {{ item.last_check.ssl_days_left }}d
+                        </span>
+                        {% endif %}
+                        {% else %}
+                        <span style="color:#facc15">Pending first check...</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="site-actions">
+                    <a href="/site/{{ item.site.id }}" class="btn btn-sm btn-outline">Details</a>
+                    <form method="POST" action="/sites/{{ item.site.id }}/check" style="display:inline">
+<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <button class="btn btn-sm btn-success">Check Now</button>
+                    </form>
+                    <form method="POST" action="/sites/{{ item.site.id }}/toggle" style="display:inline">
+<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <button class="btn btn-sm btn-outline">{{ 'Disable' if item.site.enabled else 'Enable' }}</button>
+                    </form>
+                    <form method="POST" action="/sites/{{ item.site.id }}/delete" style="display:inline" onsubmit="return confirm('Delete this site?')">
+<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <button class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty">
+            <h3>No websites monitored yet</h3>
+            <p>Add a website above to start monitoring.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <div id="bulkModal" class="modal">
+        <div class="modal-box">
+            <h2>Bulk Import Sites</h2>
+            <form method="POST" action="/sites/bulk-import">
+<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <div class="help">Format: name,url,check_ssl (one per line)<br>Example:<br>Google,https://google.com,true<br>GitHub,https://github.com,false</div>
+                <textarea name="import_data" placeholder="Google,https://google.com,true&#10;GitHub,https://github.com,false&#10;Example,https://example.com,false" required></textarea>
+                <div class="modal-actions">
+                    <button type="button" onclick="document.getElementById('bulkModal').classList.remove('active')" class="btn btn-outline">Cancel</button>
+                    <button type="submit" class="btn">Import</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        setTimeout(() => location.reload(), 30000);
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/static/service-worker.js');
+        }
+        {% if user.audio_alert %}
+        (async function() {
+            try {
+                const resp = await fetch('/api/alerts');
+                const alerts = await resp.json();
+                if (alerts.length > 0) {
+                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    for (let i = 0; i < 3; i++) {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.frequency.value = 800;
+                        osc.type = 'sine';
+                        gain.gain.value = 0.3;
+                        osc.start(ctx.currentTime + i * 0.3);
+                        osc.stop(ctx.currentTime + i * 0.3 + 0.15);
+                    }
+                }
+            } catch(e) {}
+        })();
+        {% endif %}
+    </script>
+</body>
+</html>

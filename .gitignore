@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.env
+data/
+*.db
+*.key
+*.log
+site-watcher.lnk
+cf_tunnel.log

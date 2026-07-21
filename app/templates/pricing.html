@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing - SiteWatch</title>
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" href="/static/icon-192.png">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
+        .header { background: #1e293b; border-bottom: 1px solid #334155; padding: 0.8rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 1.3rem; color: #38bdf8; }
+        .header a { color: #94a3b8; text-decoration: none; font-size: 0.85rem; }
+        .container { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
+        .page-title { text-align: center; margin-bottom: 2.5rem; }
+        .page-title h2 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .page-title p { color: #64748b; }
+
+        .plans-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+        .plan-card { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 2rem; text-align: center; position: relative; transition: border-color 0.3s; }
+        .plan-card:hover { border-color: #475569; }
+        .plan-card.featured { border-color: #2563eb; }
+        .plan-card.featured::before { content: "MOST POPULAR"; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #2563eb; color: #fff; font-size: 0.7rem; font-weight: 700; padding: 0.3rem 1rem; border-radius: 20px; }
+        .plan-card h3 { font-size: 1.3rem; margin-bottom: 0.5rem; }
+        .plan-card .price { font-size: 2.5rem; font-weight: 700; margin: 1rem 0; }
+        .plan-card .price span { font-size: 1rem; font-weight: 400; color: #64748b; }
+        .plan-card ul { list-style: none; margin: 1.5rem 0; text-align: left; }
+        .plan-card li { padding: 0.5rem 0; color: #94a3b8; font-size: 0.9rem; border-bottom: 1px solid #1e293b; }
+        .plan-card li::before { content: "✓ "; color: #4ade80; font-weight: 700; }
+        .btn { display: inline-block; width: 100%; padding: 0.8rem; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; text-decoration: none; text-align: center; border: none; transition: all 0.2s; }
+        .btn-primary { background: #2563eb; color: #fff; }
+        .btn-primary:hover { background: #3b82f6; }
+        .btn-outline { background: transparent; border: 1px solid #475569; color: #94a3b8; }
+        .btn-outline:hover { background: #1e293b; }
+        .current { background: #166534; color: #4ade80; }
+
+        @media (max-width: 768px) { .plans-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>&#9202; SiteWatch</h1>
+        <div>
+            {% if user %}
+            <a href="/dashboard">Dashboard</a>
+            {% else %}
+            <a href="/login">Login</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-title">
+            <h2>Simple Pricing</h2>
+            <p>Choose the plan that fits your needs</p>
+        </div>
+
+        <div class="plans-grid">
+            {% for key, p in plans.items() %}
+            <div class="plan-card {{ 'featured' if key == 'pro' }}">
+                <h3>{{ p.name }}</h3>
+                <div class="price">${{ p.price }}<span>/month</span></div>
+                <ul>
+                    <li>{{ p.max_sites }} websites</li>
+                    <li>Check every {{ p.interval }} seconds</li>
+                    <li>Uptime monitoring</li>
+                    <li>Response time tracking</li>
+                    {% if key != "free" %}<li>SSL certificate monitoring</li>{% endif %}
+                    {% if key == "enterprise" %}<li>Priority support</li>{% endif %}
+                    {% if key == "enterprise" %}<li>Custom check intervals</li>{% endif %}
+                </ul>
+                {% if user and user.plan == key %}
+                <button class="btn current" disabled>Current Plan</button>
+                {% elif p.price == 0 %}
+                <a href="/register" class="btn btn-primary">Get Started Free</a>
+                {% else %}
+                <button class="btn btn-primary" onclick="alert('Stripe integration coming soon!')">Upgrade Now</button>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/static/service-worker.js');
+        }
+    </script>
+</body>
+</html>
