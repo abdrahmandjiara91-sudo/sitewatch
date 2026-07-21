@@ -3,7 +3,7 @@ from fastapi import FastAPI, Depends, Form, Request, Header, Response
 from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import select, func, desc
+from sqlalchemy import select, func, desc, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from slowapi import Limiter
@@ -36,7 +36,7 @@ from app.email_service import (
     send_verification_code, send_password_reset_code,
     generate_code, _is_configured,
 )
-from app.models import VerificationToken, PasswordResetToken
+from app.models import VerificationToken, PasswordResetToken, RevokedToken
 
 limiter = Limiter(key_func=get_remote_address)
 
@@ -493,6 +493,13 @@ async def admin_delete_user(user_id: int, user: User = Depends(require_auth), _:
     async with async_session() as db:
         target = await db.get(User, user_id)
         if target:
+            await db.execute(delete(Check).where(Check.site_id.in_(
+                select(Site.id).where(Site.user_id == user_id)
+            )))
+            await db.execute(delete(Site).where(Site.user_id == user_id))
+            await db.execute(delete(ApiKey).where(ApiKey.user_id == user_id))
+            await db.execute(delete(VerificationToken).where(VerificationToken.user_id == user_id))
+            await db.execute(delete(PasswordResetToken).where(PasswordResetToken.user_id == user_id))
             await db.delete(target)
             await db.commit()
 
