@@ -82,8 +82,22 @@ async def security_headers(request: Request, call_next):
 
 
 @app.get("/health")
-async def health_check():
+async def health():
     return {"status": "ok"}
+
+
+@app.get("/test-email")
+async def test_email(request: Request, user: User = Depends(require_auth)):
+    if not user.is_admin:
+        return JSONResponse({"error": "admin only"}, status_code=403)
+    from app.email_service import RESEND_API_KEY, _send_via_resend
+    result = _send_via_resend(
+        user.email,
+        "SiteWatch Test Email",
+        "<h1>It works!</h1><p>If you see this, email is configured correctly.</p>",
+        "It works! Email is configured correctly.",
+    )
+    return {"resend_configured": bool(RESEND_API_KEY), "send_result": result, "email": user.email}
 
 
 def render(request: Request, name: str, context: dict, status_code: int = 200):

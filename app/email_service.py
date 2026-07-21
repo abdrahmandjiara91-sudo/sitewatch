@@ -5,10 +5,13 @@ Falls back to auto-verify if email is not configured.
 import os
 import smtplib
 import secrets
+import logging
 import httpx
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from pathlib import Path
+
+log = logging.getLogger("email")
 
 
 def _load_env():
@@ -44,6 +47,7 @@ def generate_code(length: int = 6) -> str:
 
 def _send_via_resend(to_email: str, subject: str, html: str, text: str) -> bool:
     if not RESEND_API_KEY:
+        log.warning("Resend: RESEND_API_KEY not set")
         return False
     try:
         resp = httpx.post(
@@ -58,8 +62,10 @@ def _send_via_resend(to_email: str, subject: str, html: str, text: str) -> bool:
             },
             timeout=15,
         )
+        log.info("Resend response: %s %s", resp.status_code, resp.text[:300])
         return resp.status_code == 200
-    except Exception:
+    except Exception as e:
+        log.error("Resend error: %s", e)
         return False
 
 
