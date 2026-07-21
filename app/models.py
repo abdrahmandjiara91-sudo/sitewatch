@@ -33,6 +33,8 @@ class User(Base):
 
     sites: Mapped[list["Site"]] = relationship(back_populates="user", cascade="all,delete-orphan")
     api_keys: Mapped[list["ApiKey"]] = relationship(back_populates="user", cascade="all,delete-orphan")
+    user_vtokens: Mapped[list["VerificationToken"]] = relationship(cascade="all,delete-orphan")
+    user_prtokens: Mapped[list["PasswordResetToken"]] = relationship(cascade="all,delete-orphan")
 
 
 class Site(Base):
@@ -101,7 +103,7 @@ class VerificationToken(Base):
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime, server_default=func.now())
     expires_at: Mapped[datetime.datetime] = mapped_column(DateTime)
 
-    user: Mapped["User"] = relationship()
+    user: Mapped["User"] = relationship(back_populates="user_vtokens")
 
 
 class PasswordResetToken(Base):
@@ -114,7 +116,7 @@ class PasswordResetToken(Base):
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime, server_default=func.now())
     expires_at: Mapped[datetime.datetime] = mapped_column(DateTime)
 
-    user: Mapped["User"] = relationship()
+    user: Mapped["User"] = relationship(back_populates="user_prtokens")
 
 
 class RevokedToken(Base):
