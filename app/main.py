@@ -17,6 +17,7 @@ import re
 import secrets
 import hashlib
 import hmac
+import asyncio
 import datetime
 
 from app.database import init_db, get_db, async_session
@@ -222,7 +223,9 @@ async def register(
             vt = VerificationToken(user_id=user.id, code=code, purpose="verify", expires_at=expires)
             db.add(vt)
             await db.commit()
-            send_verification_code(email, code, username)
+            asyncio.get_event_loop().run_in_executor(
+                None, send_verification_code, email, code, username
+            )
             token = create_token(user.id)
             response = RedirectResponse("/verify-email", status_code=303)
             response.set_cookie("token", token, httponly=True, secure=True, samesite="lax", max_age=30 * 86400)
@@ -644,7 +647,20 @@ async def verify_email_page(request: Request):
         return RedirectResponse("/login", status_code=302)
     if user.is_verified:
         return RedirectResponse("/dashboard", status_code=302)
-    return render(request, "verify_email.html", {"email": user.email})
+
+    email_code = ""
+    async with async_session() as db:
+        result = await db.execute(
+            select(VerificationToken).where(
+                VerificationToken.user_id == user.id,
+                VerificationToken.purpose == "verify",
+            ).order_by(desc(VerificationToken.created_at)).limit(1)
+        )
+        vt = result.scalar_one_or_none()
+        if vt:
+            email_code = vt.code
+
+    return render(request, "verify_email.html", {"email": user.email, "email_code": email_code})
 
 
 @app.post("/verify-email")
@@ -707,7 +723,9 @@ async def verify_email_resend(
             vt = VerificationToken(user_id=user.id, code=code, purpose="verify", expires_at=expires)
             db.add(vt)
             await db.commit()
-            send_verification_code(user.email, code, user.username)
+            asyncio.get_event_loop().run_in_executor(
+                None, send_verification_code, user.email, code, user.username
+            )
 
     return RedirectResponse("/verify-email", status_code=303)
 
@@ -744,7 +762,9 @@ async def forgot_password_submit(
         prt = PasswordResetToken(user_id=user.id, code=code, expires_at=expires)
         db.add(prt)
         await db.commit()
-        send_password_reset_code(user.email, code, user.username)
+        asyncio.get_event_loop().run_in_executor(
+            None, send_password_reset_code, user.email, code, user.username
+        )
 
     return RedirectResponse(f"/reset-password?email={email}", status_code=303)
 
