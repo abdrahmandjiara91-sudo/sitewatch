@@ -68,7 +68,9 @@ templates = Jinja2Templates(directory="app/templates")
 
 
 @app.middleware("http")
-async def security_headers(request: Request, call_next):
+async def handle_head_and_security(request: Request, call_next):
+    if request.method == "HEAD":
+        request._scope["method"] = "GET"
     response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
