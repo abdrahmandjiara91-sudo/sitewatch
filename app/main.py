@@ -406,43 +406,6 @@ async def pricing_page(request: Request):
     return templates.TemplateResponse(request, "pricing.html", {"user": user, "plans": PLANS})
 
 
-@app.get("/admin/login", response_class=HTMLResponse)
-@limiter.limit("10/minute")
-async def admin_login_page(request: Request, error: str = ""):
-    user = await get_current_user(request)
-    if user and user.is_admin:
-        return RedirectResponse("/admin", status_code=302)
-    return render(request, "admin_login.html", {"error": error})
-
-
-@app.post("/admin/login")
-@limiter.limit("5/minute")
-async def admin_login(
-    request: Request,
-    email: str = Form(...),
-    password: str = Form(...),
-    _: bool = Depends(verify_csrf),
-):
-    async with async_session() as db:
-        result = await db.execute(select(User).where(User.email == email))
-        user = result.scalar_one_or_none()
-
-        if not user or not verify_password(password, user.password_hash):
-            return render(
-                request, "admin_login.html", {"error": "Invalid email or password"}
-            )
-
-        if not user.is_admin:
-            return render(
-                request, "admin_login.html", {"error": "This account is not an admin"}
-            )
-
-    token = create_token(user.id)
-    response = RedirectResponse("/admin", status_code=303)
-    response.set_cookie("token", token, httponly=True, secure=True, samesite="lax", max_age=30 * 86400)
-    return response
-
-
 @app.get("/admin", response_class=HTMLResponse)
 async def admin_panel(request: Request, user: User = Depends(require_auth)):
     if not user.is_admin:
