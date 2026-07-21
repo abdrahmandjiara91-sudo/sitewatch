@@ -9,6 +9,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import async_session
 from app.models import Site, Check, User
 
+_utcnow = lambda: datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+
 
 def _is_private_host(hostname: str) -> bool:
     try:
@@ -35,7 +37,7 @@ async def check_ssl_expiry(hostname: str, port: int = 443) -> tuple[bool, int | 
             s.connect((hostname, port))
             cert = s.getpeercert()
             exp = datetime.datetime.strptime(cert["notAfter"], "%b %d %H:%M:%S %Y %Z")
-            days_left = (exp - datetime.datetime.utcnow()).days
+            days_left = (exp - _utcnow()).days
             return True, days_left
     except Exception:
         return False, None
@@ -71,9 +73,9 @@ async def check_site(site: Site, db: AsyncSession) -> Check:
             return check
 
         async with httpx.AsyncClient(verify=False, timeout=15) as client:
-            start = datetime.datetime.utcnow()
+            start = _utcnow()
             resp = await client.get(site.url, follow_redirects=True)
-            elapsed = (datetime.datetime.utcnow() - start).total_seconds() * 1000
+            elapsed = (_utcnow() - start).total_seconds() * 1000
 
             status_code = resp.status_code
             response_ms = round(elapsed, 2)
@@ -87,7 +89,6 @@ async def check_site(site: Site, db: AsyncSession) -> Check:
 
     if site.check_ssl:
         try:
-            from urllib.parse import urlparse
             hostname = urlparse(site.url).hostname
             ssl_valid, ssl_days = await check_ssl_expiry(hostname)
         except Exception:
@@ -114,7 +115,7 @@ async def check_site(site: Site, db: AsyncSession) -> Check:
                 if is_up:
                     await notify_up(user, site)
                 else:
-                    await notify_down(user, site)
+                    await notify_down(user, site, last)
         except Exception:
             pass
 
@@ -125,7 +126,7 @@ async def run_checks():
     async with async_session() as db:
         result = await db.execute(select(Site).where(Site.enabled == True))
         sites = result.scalars().all()
-        now = datetime.datetime.utcnow()
+        now = _utcnow()
         for site in sites:
             last_check_q = (
                 select(Check)

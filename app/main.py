@@ -1,10 +1,8 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Depends, Form, Request, Header, Response
+from fastapi import FastAPI, Depends, Form, Request, Header
 from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
-from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select, func, desc, delete
-from sqlalchemy.ext.asyncio import AsyncSession
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -20,23 +18,15 @@ import hmac
 import asyncio
 import datetime
 
-from app.database import init_db, get_db, async_session
-from app.models import User, Site, Check, PLANS, ApiKey
-from app.auth import (
-    hash_password, verify_password, create_token,
-    get_current_user, require_auth,
-)
+from app.database import init_db, async_session
+from app.models import User, Site, Check, PLANS, ApiKey, VerificationToken, PasswordResetToken, RevokedToken
+from app.auth import hash_password, verify_password, create_token, get_current_user, require_auth
 from app.monitor import run_checks, check_site, _is_private_host
-from app.csrf import (
-    get_or_create_csrf_session_id, set_csrf_cookie_if_new,
-    generate_csrf_token, verify_csrf,
-)
+from app.csrf import get_or_create_csrf_session_id, set_csrf_cookie_if_new, generate_csrf_token, verify_csrf
 from app.crypto import encrypt_value, decrypt_value
-from app.email_service import (
-    send_verification_code, send_password_reset_code,
-    generate_code, _is_configured,
-)
-from app.models import VerificationToken, PasswordResetToken, RevokedToken
+from app.email_service import send_verification_code, send_password_reset_code, generate_code, _is_configured
+
+_utcnow = lambda: datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
 
 limiter = Limiter(key_func=get_remote_address)
 
@@ -44,10 +34,8 @@ scheduler = AsyncIOScheduler()
 
 
 async def _cleanup_revoked_tokens():
-    from app.models import RevokedToken
     async with async_session() as db:
-        cutoff = datetime.datetime.utcnow() - datetime.timedelta(days=31)
-        from sqlalchemy import delete
+        cutoff = _utcnow() - datetime.timedelta(days=31)
         await db.execute(delete(RevokedToken).where(RevokedToken.revoked_at < cutoff))
         await db.commit()
 
@@ -155,8 +143,24 @@ async def login(
             )
 
         if not user.is_verified and _is_configured():
+            try:
+                code = generate_code()
+                expires = _utcnow() + datetime.timedelta(minutes=15)
+                async with async_session() as vdb:
+                    vt = VerificationToken(user_id=user.id, code=code, purpose="verify", expires_at=expires)
+                    vdb.add(vt)
+                    await vdb.commit()
+                    try:
+                        await asyncio.wait_for(
+                            asyncio.to_thread(send_verification_code, user.email, code, user.username),
+                            timeout=8,
+                        )
+                    except (asyncio.TimeoutError, Exception):
+                        pass
+            except Exception:
+                pass
             token = create_token(user.id)
-            response = RedirectResponse("/verify-email", status_code=303)
+            response = RedirectResponse("/verify-email?msg=ok", status_code=303)
             response.set_cookie("token", token, httponly=True, secure=True, samesite="lax", max_age=30 * 86400)
             return response
 
@@ -219,7 +223,7 @@ async def register(
 
         if _is_configured():
             code = generate_code()
-            expires = datetime.datetime.utcnow() + datetime.timedelta(minutes=15)
+            expires = _utcnow() + datetime.timedelta(minutes=15)
             vt = VerificationToken(user_id=user.id, code=code, purpose="verify", expires_at=expires)
             db.add(vt)
             await db.commit()
@@ -250,13 +254,12 @@ async def register(
 
 
 @app.post("/logout")
-async def logout(request: Request):
+async def logout(request: Request, _: bool = Depends(verify_csrf)):
     token = request.cookies.get("token")
     if token:
         from app.auth import decode_token
         _, jti, _ = decode_token(token)
         if jti:
-            from app.models import RevokedToken
             async with async_session() as db:
                 db.add(RevokedToken(jti=jti))
                 await db.commit()
@@ -700,7 +703,7 @@ async def verify_email_submit(
         if not vt or not hmac.compare_digest(vt.code, code):
             return render(request, "verify_email.html", {"error": "Invalid code. Try again.", "email": user.email})
 
-        if datetime.datetime.utcnow() > vt.expires_at:
+        if _utcnow() > vt.expires_at:
             return render(request, "verify_email.html", {"error": "Code expired. Request a new one.", "email": user.email})
 
         u = await db.get(User, user.id)
@@ -733,7 +736,7 @@ async def verify_email_resend(
                 await db.delete(t)
 
             code = generate_code()
-            expires = datetime.datetime.utcnow() + datetime.timedelta(minutes=15)
+            expires = _utcnow() + datetime.timedelta(minutes=15)
             vt = VerificationToken(user_id=user.id, code=code, purpose="verify", expires_at=expires)
             db.add(vt)
             await db.commit()
@@ -772,13 +775,14 @@ async def forgot_password_submit(
             t.used = True
 
         code = generate_code()
-        expires = datetime.datetime.utcnow() + datetime.timedelta(minutes=15)
+        expires = _utcnow() + datetime.timedelta(minutes=15)
         prt = PasswordResetToken(user_id=user.id, code=code, expires_at=expires)
         db.add(prt)
         await db.commit()
-            asyncio.ensure_future(asyncio.to_thread(
-                send_password_reset_code, user.email, code, user.username
-            ))
+
+    asyncio.ensure_future(asyncio.to_thread(
+        send_password_reset_code, user.email, code, user.username
+    ))
 
     return RedirectResponse(f"/reset-password?email={email}", status_code=303)
 
@@ -828,12 +832,12 @@ async def reset_password_submit(
         if not matched:
             return render(request, "reset_password.html", {"error": "Invalid code", "email": email})
 
-        if datetime.datetime.utcnow() > matched.expires_at:
+        if _utcnow() > matched.expires_at:
             return render(request, "reset_password.html", {"error": "Code expired. Request a new one.", "email": email})
 
         matched.used = True
         user.password_hash = hash_password(password)
-        user.password_changed_at = datetime.datetime.utcnow()
+        user.password_changed_at = _utcnow()
         await db.commit()
 
     return RedirectResponse("/login?error=Password+reset+successful.+Please+sign+in.", status_code=303)
@@ -1086,7 +1090,7 @@ async def api_v1_status(request: Request, authorization: str = Header(None)):
             return JSONResponse(status_code=401, content={"error": "Invalid API key"})
 
         user = await db.get(User, api_key.user_id)
-        api_key.last_used_at = datetime.datetime.utcnow()
+        api_key.last_used_at = _utcnow()
         await db.commit()
 
     plan_limit = PLANS[user.plan]["max_sites"]
@@ -1139,7 +1143,7 @@ async def api_v1_check_site(request: Request, site_url: str, authorization: str 
             return JSONResponse(status_code=401, content={"error": "Invalid API key"})
 
         user = await db.get(User, api_key.user_id)
-        api_key.last_used_at = datetime.datetime.utcnow()
+        api_key.last_used_at = _utcnow()
         await db.commit()
 
         site_q = select(Site).where(Site.user_id == user.id, Site.url == site_url)
