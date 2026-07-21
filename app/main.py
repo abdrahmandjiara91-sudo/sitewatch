@@ -68,9 +68,7 @@ templates = Jinja2Templates(directory="app/templates")
 
 
 @app.middleware("http")
-async def handle_head_and_security(request: Request, call_next):
-    if request.method == "HEAD":
-        request._scope["method"] = "GET"
+async def security_headers(request: Request, call_next):
     response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
@@ -80,6 +78,11 @@ async def handle_head_and_security(request: Request, call_next):
     response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self'"
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
     return response
+
+
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
 
 
 def render(request: Request, name: str, context: dict, status_code: int = 200):
