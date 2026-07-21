@@ -648,19 +648,7 @@ async def verify_email_page(request: Request):
     if user.is_verified:
         return RedirectResponse("/dashboard", status_code=302)
 
-    email_code = ""
-    async with async_session() as db:
-        result = await db.execute(
-            select(VerificationToken).where(
-                VerificationToken.user_id == user.id,
-                VerificationToken.purpose == "verify",
-            ).order_by(desc(VerificationToken.created_at)).limit(1)
-        )
-        vt = result.scalar_one_or_none()
-        if vt:
-            email_code = vt.code
-
-    return render(request, "verify_email.html", {"email": user.email, "email_code": email_code})
+    return render(request, "verify_email.html", {"email": user.email})
 
 
 @app.post("/verify-email")
