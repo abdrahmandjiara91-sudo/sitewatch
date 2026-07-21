@@ -86,18 +86,6 @@ async def health():
     return {"status": "ok"}
 
 
-@app.get("/test-email")
-async def test_email(request: Request):
-    from app.email_service import RESEND_API_KEY, EMAIL_ADDRESS, EMAIL_PASSWORD, _is_configured
-    return JSONResponse({
-        "configured": _is_configured(),
-        "has_resend_key": bool(RESEND_API_KEY),
-        "resend_key_prefix": RESEND_API_KEY[:8] + "..." if RESEND_API_KEY else "",
-        "has_smtp": bool(EMAIL_ADDRESS and EMAIL_PASSWORD),
-        "smtp_email": EMAIL_ADDRESS[:3] + "..." if EMAIL_ADDRESS else "",
-    })
-
-
 def render(request: Request, name: str, context: dict, status_code: int = 200):
     """Renders a template and, if it contains a form, transparently attaches
     a valid CSRF token + cookie. Use this instead of templates.TemplateResponse
@@ -235,16 +223,25 @@ async def register(
             vt = VerificationToken(user_id=user.id, code=code, purpose="verify", expires_at=expires)
             db.add(vt)
             await db.commit()
-            email_sent = await asyncio.to_thread(
-                send_verification_code, email, code, username
-            )
             token = create_token(user.id)
-            response = RedirectResponse(
-                "/verify-email?msg=ok" if email_sent else "/verify-email?msg=email_failed",
-                status_code=303,
-            )
-            response.set_cookie("token", token, httponly=True, secure=True, samesite="lax", max_age=30 * 86400)
-            return response
+            try:
+                email_sent = await asyncio.wait_for(
+                    asyncio.to_thread(send_verification_code, email, code, username),
+                    timeout=8,
+                )
+            except (asyncio.TimeoutError, Exception):
+                email_sent = False
+            if email_sent:
+                response = RedirectResponse("/verify-email?msg=ok", status_code=303)
+                response.set_cookie("token", token, httponly=True, secure=True, samesite="lax", max_age=30 * 86400)
+                return response
+            else:
+                u = await db.get(User, user.id)
+                u.is_verified = True
+                await db.commit()
+                response = RedirectResponse("/dashboard", status_code=303)
+                response.set_cookie("token", token, httponly=True, secure=True, samesite="lax", max_age=30 * 86400)
+                return response
 
     token = create_token(user.id)
     response = RedirectResponse("/dashboard", status_code=303)
