@@ -62,28 +62,39 @@ async def check_site(site: Site, db: AsyncSession) -> Check:
     if last:
         was_up_before = last.is_up
 
+    parsed = urlparse(site.url)
+    hostname = parsed.hostname or ""
+    if _is_private_host(hostname):
+        error = "Blocked: URL points to a private/internal host"
+        check = Check(site_id=site.id, status_code=None, response_ms=None, is_up=False, error_message=error)
+        db.add(check)
+        await db.commit()
+        return check
+
     try:
-        parsed = urlparse(site.url)
-        hostname = parsed.hostname or ""
-        if _is_private_host(hostname):
-            error = "Blocked: URL points to a private/internal host"
-            check = Check(site_id=site.id, status_code=None, response_ms=None, is_up=False, error_message=error)
-            db.add(check)
-            await db.commit()
-            return check
-
-        async with httpx.AsyncClient(verify=False, timeout=15) as client:
-            start = _utcnow()
-            resp = await client.get(site.url, follow_redirects=True)
-            elapsed = (_utcnow() - start).total_seconds() * 1000
-
-            status_code = resp.status_code
-            response_ms = round(elapsed, 2)
-            is_up = status_code == site.expected_status
-
-            if site.keyword:
-                is_up = is_up and site.keyword in resp.text
-
+        try:
+            async with httpx.AsyncClient(verify=True, timeout=15) as client:
+                start = _utcnow()
+                resp = await client.get(site.url, follow_redirects=True)
+                elapsed = (_utcnow() - start).total_seconds() * 1000
+                status_code = resp.status_code
+                response_ms = round(elapsed, 2)
+                is_up = status_code == site.expected_status
+                if site.keyword:
+                    is_up = is_up and site.keyword in resp.text
+        except httpx.ConnectError:
+            async with httpx.AsyncClient(verify=False, timeout=15) as client:
+                start = _utcnow()
+                resp = await client.get(site.url, follow_redirects=True)
+                elapsed = (_utcnow() - start).total_seconds() * 1000
+                status_code = resp.status_code
+                response_ms = round(elapsed, 2)
+                is_up = status_code == site.expected_status
+                if site.keyword:
+                    is_up = is_up and site.keyword in resp.text
+                ssl_valid = False
+    except httpx.TimeoutException:
+        error = "Connection timed out"
     except Exception as e:
         error = str(e)[:1000]
 

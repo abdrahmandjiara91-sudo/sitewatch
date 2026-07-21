@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, Form, Request, Header
 from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
-from sqlalchemy import select, func, desc, delete
+from sqlalchemy import select, func, desc, delete, update
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -28,7 +28,13 @@ from app.email_service import send_verification_code, send_password_reset_code, 
 
 _utcnow = lambda: datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
 
-limiter = Limiter(key_func=get_remote_address)
+def _get_client_ip(request: Request) -> str:
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+limiter = Limiter(key_func=_get_client_ip)
 
 scheduler = AsyncIOScheduler()
 
@@ -40,11 +46,18 @@ async def _cleanup_revoked_tokens():
         await db.commit()
 
 
+async def _reset_daily_api_counters():
+    async with async_session() as db:
+        await db.execute(update(ApiKey).values(requests_today=0))
+        await db.commit()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
     scheduler.add_job(run_checks, "interval", seconds=60, id="monitor")
     scheduler.add_job(_cleanup_revoked_tokens, "interval", days=1, id="cleanup_tokens")
+    scheduler.add_job(_reset_daily_api_counters, "cron", hour=0, minute=0, id="reset_api_counters")
     scheduler.start()
     yield
     scheduler.shutdown()
@@ -194,6 +207,10 @@ async def register(
         return render(request, "register.html", {"error": "Username must be 3-30 characters"})
     if not re.match(r'^[a-zA-Z0-9_]+$', username):
         return render(request, "register.html", {"error": "Username may only contain letters, numbers, and underscores"})
+    if len(email) > 200:
+        return render(request, "register.html", {"error": "Email too long"})
+    if not re.match(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', email):
+        return render(request, "register.html", {"error": "Invalid email address"})
 
     if password != confirm_password:
         return render(request, "register.html", {"error": "Passwords do not match"})
@@ -333,8 +350,16 @@ async def add_site(
 ):
     from urllib.parse import urlparse as _urlparse
     parsed = _urlparse(url)
+    if not parsed.scheme or not parsed.hostname:
+        return RedirectResponse("/dashboard?error=Invalid+URL", status_code=303)
+    if parsed.scheme not in ("http", "https"):
+        return RedirectResponse("/dashboard?error=Only+HTTP+and+HTTPS+URLs+are+allowed", status_code=303)
     if parsed.hostname and _is_private_host(parsed.hostname):
         return RedirectResponse("/dashboard?error=Cannot+monitor+private+or+internal+URLs", status_code=303)
+    if len(name) > 200:
+        name = name[:200]
+    if len(url) > 2000:
+        return RedirectResponse("/dashboard?error=URL+too+long", status_code=303)
 
     plan_info = PLANS[user.plan]
 
@@ -582,6 +607,15 @@ async def bulk_import(
     return RedirectResponse("/dashboard", status_code=303)
 
 
+_csv_dangerous = re.compile(r'^[=+\-@\t\r]')
+
+def _csv_safe(val):
+    s = str(val) if val is not None else ""
+    if _csv_dangerous.match(s):
+        s = "'" + s
+    return s
+
+
 @app.get("/export/{site_id}")
 async def export_site_checks(site_id: int, user: User = Depends(require_auth)):
     async with async_session() as db:
@@ -607,7 +641,7 @@ async def export_site_checks(site_id: int, user: User = Depends(require_auth)):
             c.status_code or "",
             c.response_ms or "",
             c.ssl_days_left or "",
-            c.error_message or "",
+            _csv_safe(c.error_message),
         ])
 
     safe_name = re.sub(r'[^a-zA-Z0-9_\-]', '_', site.name)[:50]
@@ -1091,6 +1125,7 @@ async def api_v1_status(request: Request, authorization: str = Header(None)):
 
         user = await db.get(User, api_key.user_id)
         api_key.last_used_at = _utcnow()
+        api_key.requests_today += 1
         await db.commit()
 
     plan_limit = PLANS[user.plan]["max_sites"]
@@ -1144,6 +1179,7 @@ async def api_v1_check_site(request: Request, site_url: str, authorization: str 
 
         user = await db.get(User, api_key.user_id)
         api_key.last_used_at = _utcnow()
+        api_key.requests_today += 1
         await db.commit()
 
         site_q = select(Site).where(Site.user_id == user.id, Site.url == site_url)
