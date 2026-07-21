@@ -87,17 +87,15 @@ async def health():
 
 
 @app.get("/test-email")
-async def test_email(request: Request, user: User = Depends(require_auth)):
-    if not user.is_admin:
-        return JSONResponse({"error": "admin only"}, status_code=403)
-    from app.email_service import RESEND_API_KEY, _send_via_resend
-    result = _send_via_resend(
-        user.email,
-        "SiteWatch Test Email",
-        "<h1>It works!</h1><p>If you see this, email is configured correctly.</p>",
-        "It works! Email is configured correctly.",
-    )
-    return {"resend_configured": bool(RESEND_API_KEY), "send_result": result, "email": user.email}
+async def test_email(request: Request):
+    from app.email_service import RESEND_API_KEY, EMAIL_ADDRESS, EMAIL_PASSWORD, _is_configured
+    return JSONResponse({
+        "configured": _is_configured(),
+        "has_resend_key": bool(RESEND_API_KEY),
+        "resend_key_prefix": RESEND_API_KEY[:8] + "..." if RESEND_API_KEY else "",
+        "has_smtp": bool(EMAIL_ADDRESS and EMAIL_PASSWORD),
+        "smtp_email": EMAIL_ADDRESS[:3] + "..." if EMAIL_ADDRESS else "",
+    })
 
 
 def render(request: Request, name: str, context: dict, status_code: int = 200):
@@ -237,11 +235,14 @@ async def register(
             vt = VerificationToken(user_id=user.id, code=code, purpose="verify", expires_at=expires)
             db.add(vt)
             await db.commit()
-            asyncio.get_event_loop().run_in_executor(
-                None, send_verification_code, email, code, username
+            email_sent = await asyncio.to_thread(
+                send_verification_code, email, code, username
             )
             token = create_token(user.id)
-            response = RedirectResponse("/verify-email", status_code=303)
+            response = RedirectResponse(
+                "/verify-email?msg=ok" if email_sent else "/verify-email?msg=email_failed",
+                status_code=303,
+            )
             response.set_cookie("token", token, httponly=True, secure=True, samesite="lax", max_age=30 * 86400)
             return response
 
@@ -655,14 +656,21 @@ async def api_checks(request: Request, site_id: int, limit: int = 50, user: User
 
 @app.get("/verify-email", response_class=HTMLResponse)
 @limiter.limit("10/minute")
-async def verify_email_page(request: Request):
+async def verify_email_page(request: Request, msg: str = ""):
     user = await get_current_user(request)
     if not user:
         return RedirectResponse("/login", status_code=302)
     if user.is_verified:
         return RedirectResponse("/dashboard", status_code=302)
 
-    return render(request, "verify_email.html", {"email": user.email})
+    error = ""
+    message = ""
+    if msg == "email_failed":
+        error = "Email could not be sent. Please click Resend below."
+    elif msg == "ok":
+        message = "Verification code sent! Check your email."
+
+    return render(request, "verify_email.html", {"email": user.email, "error": error, "message": message})
 
 
 @app.post("/verify-email")
@@ -725,11 +733,11 @@ async def verify_email_resend(
             vt = VerificationToken(user_id=user.id, code=code, purpose="verify", expires_at=expires)
             db.add(vt)
             await db.commit()
-            asyncio.get_event_loop().run_in_executor(
-                None, send_verification_code, user.email, code, user.username
-            )
+            asyncio.ensure_future(asyncio.to_thread(
+                send_verification_code, user.email, code, user.username
+            ))
 
-    return RedirectResponse("/verify-email", status_code=303)
+    return RedirectResponse("/verify-email?msg=ok", status_code=303)
 
 
 @app.get("/forgot-password", response_class=HTMLResponse)
@@ -764,9 +772,9 @@ async def forgot_password_submit(
         prt = PasswordResetToken(user_id=user.id, code=code, expires_at=expires)
         db.add(prt)
         await db.commit()
-        asyncio.get_event_loop().run_in_executor(
-            None, send_password_reset_code, user.email, code, user.username
-        )
+            asyncio.ensure_future(asyncio.to_thread(
+                send_password_reset_code, user.email, code, user.username
+            ))
 
     return RedirectResponse(f"/reset-password?email={email}", status_code=303)
 
