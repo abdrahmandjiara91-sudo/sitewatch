@@ -1,6 +1,7 @@
 import os
 import asyncio
 import httpx
+import json
 
 from app.crypto import decrypt_value
 from app.email_service import _send_email
@@ -20,6 +21,40 @@ async def send_telegram(chat_id: str, message: str):
             )
     except Exception:
         pass
+
+
+async def send_slack(webhook_url: str, text: str):
+    if not webhook_url:
+        return
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            await client.post(webhook_url, json={"text": text})
+    except Exception:
+        pass
+
+
+async def send_discord(webhook_url: str, content: str):
+    if not webhook_url:
+        return
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            await client.post(webhook_url, json={"content": content})
+    except Exception:
+        pass
+
+
+async def send_custom_webhooks(urls: list[str], payload: dict):
+    if not urls:
+        return
+    async with httpx.AsyncClient(timeout=10) as client:
+        for url in urls:
+            url = url.strip()
+            if not url:
+                continue
+            try:
+                await client.post(url, json=payload)
+            except Exception:
+                pass
 
 
 def _send_down_email_sync(email, site_name, site_url, checked_at):
@@ -63,6 +98,7 @@ async def notify_down(user, site, last_check):
         f"URL: {site.url}\n"
         f"Check at: {checked_at}"
     )
+    plain_msg = f"Site is DOWN!\n{site.name}\nURL: {site.url}\nCheck at: {checked_at}"
 
     if user.notify_telegram and user.telegram_chat_id:
         chat_id = decrypt_value(user.telegram_chat_id)
@@ -75,6 +111,18 @@ async def notify_down(user, site, last_check):
         except Exception:
             pass
 
+    if user.notify_slack and user.slack_webhook_url:
+        await send_slack(user.slack_webhook_url, plain_msg)
+
+    if user.notify_discord and user.discord_webhook_url:
+        await send_discord(user.discord_webhook_url, plain_msg)
+
+    if user.custom_webhooks:
+        urls = [u.strip() for u in user.custom_webhooks.strip().splitlines() if u.strip()]
+        if urls:
+            payload = {"event": "down", "site": site.name, "url": site.url, "checked_at": checked_at}
+            await send_custom_webhooks(urls, payload)
+
 
 async def notify_up(user, site):
     message = (
@@ -82,6 +130,7 @@ async def notify_up(user, site):
         f"<b>{site.name}</b>\n"
         f"URL: {site.url}"
     )
+    plain_msg = f"Site is back UP!\n{site.name}\nURL: {site.url}"
 
     if user.notify_telegram and user.telegram_chat_id:
         chat_id = decrypt_value(user.telegram_chat_id)
@@ -93,3 +142,15 @@ async def notify_up(user, site):
             await asyncio.to_thread(_send_up_email_sync, user.email, site.name, site.url)
         except Exception:
             pass
+
+    if user.notify_slack and user.slack_webhook_url:
+        await send_slack(user.slack_webhook_url, plain_msg)
+
+    if user.notify_discord and user.discord_webhook_url:
+        await send_discord(user.discord_webhook_url, plain_msg)
+
+    if user.custom_webhooks:
+        urls = [u.strip() for u in user.custom_webhooks.strip().splitlines() if u.strip()]
+        if urls:
+            payload = {"event": "up", "site": site.name, "url": site.url}
+            await send_custom_webhooks(urls, payload)

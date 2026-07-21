@@ -25,6 +25,7 @@ from app.monitor import run_checks, check_site, _is_private_host
 from app.csrf import get_or_create_csrf_session_id, set_csrf_cookie_if_new, generate_csrf_token, verify_csrf
 from app.crypto import encrypt_value, decrypt_value
 from app.email_service import send_verification_code, send_password_reset_code, generate_code, _is_configured
+from app.translations import get_translations
 
 _utcnow = lambda: datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
 
@@ -85,6 +86,145 @@ async def security_headers(request: Request, call_next):
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
+
+@app.get("/status/{username}", response_class=HTMLResponse)
+async def public_status_page(request: Request, username: str):
+    from fastapi.responses import HTMLResponse as HTMLResp
+    async with async_session() as db:
+        user_result = await db.execute(select(User).where(User.username == username))
+        display_user = user_result.scalar_one_or_none()
+        if not display_user:
+            return HTMLResponse("<h1>User not found</h1>", status_code=404)
+
+        result = await db.execute(
+            select(Site).where(Site.user_id == display_user.id, Site.enabled == True).order_by(Site.id)
+        )
+        sites = result.scalars().all()
+
+        site_data = []
+        all_up = True
+        for site in sites:
+            last_check_q = (
+                select(Check).where(Check.site_id == site.id)
+                .order_by(desc(Check.checked_at)).limit(1)
+            )
+            last = (await db.execute(last_check_q)).scalar_one_or_none()
+
+            total_q = select(func.count(Check.id)).where(Check.site_id == site.id)
+            total = (await db.execute(total_q)).scalar() or 0
+            up_q = select(func.count(Check.id)).where(Check.site_id == site.id, Check.is_up == True)
+            up_count = (await db.execute(up_q)).scalar() or 0
+            uptime = round((up_count / total * 100) if total > 0 else 0, 1)
+
+            if last:
+                is_up = last.is_up
+                status_class = "up" if is_up else "down"
+                last_checked_str = last.checked_at.strftime("%Y-%m-%d %H:%M UTC")
+            else:
+                status_class = "pending"
+                last_checked_str = ""
+
+            if not (last and last.is_up) and last:
+                all_up = False
+
+            if uptime >= 99:
+                uptime_class = "good"
+            elif uptime >= 90:
+                uptime_class = "warn"
+            else:
+                uptime_class = "bad"
+
+            site_data.append({
+                "site": site,
+                "last_check": last,
+                "status_class": status_class,
+                "uptime": uptime,
+                "uptime_class": uptime_class,
+                "last_checked_str": last_checked_str,
+            })
+
+    lang = request.cookies.get("lang", "en")
+    t = get_translations(lang)
+
+    return templates.TemplateResponse(request, "status.html", {
+        "display_user": display_user.username,
+        "sites": site_data,
+        "all_up": all_up,
+        "t": t,
+    })
+
+
+@app.get("/badge/{site_id}.svg")
+async def badge_svg(site_id: int):
+    from fastapi.responses import Response
+    async with async_session() as db:
+        site = await db.get(Site, site_id)
+        if not site:
+            return Response(content='<svg xmlns="http://www.w3.org/2000/svg" width="110" height="20"><text x="5" y="14" font-family="sans-serif" font-size="11" fill="#94a3b8">not found</text></svg>', media_type="image/svg+xml")
+
+        last_check_q = (
+            select(Check).where(Check.site_id == site.id)
+            .order_by(desc(Check.checked_at)).limit(1)
+        )
+        last = (await db.execute(last_check_q)).scalar_one_or_none()
+
+        total_q = select(func.count(Check.id)).where(Check.site_id == site.id)
+        total = (await db.execute(total_q)).scalar() or 0
+        up_q = select(func.count(Check.id)).where(Check.site_id == site.id, Check.is_up == True)
+        up_count = (await db.execute(up_q)).scalar() or 0
+        uptime = round((up_count / total * 100) if total > 0 else 0, 1)
+
+        if last and last.is_up:
+            color = "#4ade80"
+            label = "up"
+        elif last:
+            color = "#f87171"
+            label = "down"
+        else:
+            color = "#facc15"
+            label = "pending"
+
+        badge_text = f"{uptime}% uptime"
+
+    svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="130" height="20" role="img" aria-label="uptime: {badge_text}">
+  <title>uptime: {badge_text}</title>
+  <linearGradient id="s" x2="0" y2="100%">
+    <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
+    <stop offset="1" stop-opacity=".1"/>
+  </linearGradient>
+  <clipPath id="r">
+    <rect width="130" height="20" rx="3" fill="#fff"/>
+  </clipPath>
+  <g clip-path="url(#r)">
+    <rect width="65" height="20" fill="{color}"/>
+    <rect x="65" width="65" height="20" fill="{color}" fill-opacity=".4"/>
+    <rect width="130" height="20" fill="url(#s)"/>
+  </g>
+  <g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="11">
+    <text x="33" y="15" fill="#010101" fill-opacity=".3">uptime</text>
+    <text x="33" y="14">uptime</text>
+    <text x="98" y="15" fill="#010101" fill-opacity=".3">{badge_text}</text>
+    <text x="98" y="14">{badge_text}</text>
+  </g>
+</svg>'''
+    return Response(content=svg, media_type="image/svg+xml")
+
+
+@app.post("/settings/language")
+async def update_language(
+    request: Request,
+    language: str = Form("en"),
+    user: User = Depends(require_auth),
+    _: bool = Depends(verify_csrf),
+):
+    async with async_session() as db:
+        u = await db.get(User, user.id)
+        u.language = language
+        await db.commit()
+    response = RedirectResponse("/settings?message=Language+saved!", status_code=303)
+    response.set_cookie("lang", language, max_age=365 * 86400)
+    return response
 
 
 def render(request: Request, name: str, context: dict, status_code: int = 200):
@@ -540,11 +680,18 @@ SAFE_SETTINGS_ERRORS = {"admin_only", "Database not found"}
 async def settings_page(request: Request, user: User = Depends(require_auth), message: str = "", error: str = ""):
     decrypted_chat_id = decrypt_value(user.telegram_chat_id)
     safe_error = error if error in SAFE_SETTINGS_ERRORS else ""
+    lang = request.cookies.get("lang", user.language or "en")
+    t = get_translations(lang)
     return render(request, "settings.html", {
         "user": user,
         "telegram_chat_id_plain": decrypted_chat_id,
+        "slack_webhook_url": user.slack_webhook_url or "",
+        "discord_webhook_url": user.discord_webhook_url or "",
+        "custom_webhooks": user.custom_webhooks or "",
         "message": message,
         "error": safe_error,
+        "t": t,
+        "lang": lang,
     })
 
 
@@ -554,6 +701,11 @@ async def update_settings(
     notify_email: bool = Form(False),
     notify_telegram: bool = Form(False),
     telegram_chat_id: str = Form(""),
+    notify_slack: bool = Form(False),
+    slack_webhook_url: str = Form(""),
+    notify_discord: bool = Form(False),
+    discord_webhook_url: str = Form(""),
+    custom_webhooks: str = Form(""),
     audio_alert: bool = Form(False),
     user: User = Depends(require_auth),
     _: bool = Depends(verify_csrf),
@@ -564,6 +716,11 @@ async def update_settings(
         u.notify_telegram = notify_telegram
         u.audio_alert = audio_alert
         u.telegram_chat_id = encrypt_value(telegram_chat_id) if telegram_chat_id else None
+        u.notify_slack = notify_slack
+        u.slack_webhook_url = slack_webhook_url if slack_webhook_url else None
+        u.notify_discord = notify_discord
+        u.discord_webhook_url = discord_webhook_url if discord_webhook_url else None
+        u.custom_webhooks = custom_webhooks if custom_webhooks.strip() else None
         await db.commit()
     return RedirectResponse("/settings?message=Settings+saved!", status_code=303)
 

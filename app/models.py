@@ -24,7 +24,13 @@ class User(Base):
     telegram_chat_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
     notify_email: Mapped[bool] = mapped_column(Boolean, default=True)
     notify_telegram: Mapped[bool] = mapped_column(Boolean, default=False)
+    notify_slack: Mapped[bool] = mapped_column(Boolean, default=False)
+    slack_webhook_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    notify_discord: Mapped[bool] = mapped_column(Boolean, default=False)
+    discord_webhook_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    custom_webhooks: Mapped[str | None] = mapped_column(Text, nullable=True)
     audio_alert: Mapped[bool] = mapped_column(Boolean, default=False)
+    language: Mapped[str] = mapped_column(String(5), default="en")
     password_changed_at: Mapped[datetime.datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime, server_default=func.now()

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Settings - SiteWatch</title>
+    <title>{{ t.settings }} - SiteWatch</title>
     <link rel="manifest" href="/static/manifest.json">
     <meta name="theme-color" content="#2563eb">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -22,7 +22,6 @@
         }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; transition: background 0.3s, color 0.3s; }
 
-        /* Sidebar */
         .sidebar { width: 260px; min-height: 100vh; background: var(--sidebar-bg); border-right: 1px solid var(--border); padding: 1.5rem 0; position: fixed; top: 0; left: 0; transition: background 0.3s; display: flex; flex-direction: column; }
         .sidebar-brand { padding: 0 1.5rem 1.5rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem; }
         .sidebar-brand h2 { color: var(--accent); font-size: 1.2rem; display: flex; align-items: center; gap: 0.5rem; }
@@ -37,7 +36,6 @@
         .sidebar-footer a { color: var(--dim); text-decoration: none; font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem; }
         .sidebar-footer a:hover { color: var(--text); }
 
-        /* Main Content */
         .main { flex: 1; margin-left: 260px; padding: 2rem; min-height: 100vh; }
         .page-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem; }
         .page-subtitle { color: var(--dim); font-size: 0.9rem; margin-bottom: 2rem; }
@@ -48,14 +46,20 @@
         .section-icon.green { background: rgba(34,197,94,0.15); color: #22c55e; }
         .section-icon.yellow { background: rgba(234,179,8,0.15); color: #eab308; }
         .section-icon.purple { background: rgba(168,85,247,0.15); color: #a855f7; }
+        .section-icon.red { background: rgba(239,68,68,0.15); color: #ef4444; }
+        .section-icon.cyan { background: rgba(6,182,212,0.15); color: #06b6d4; }
         .section-title { font-size: 1rem; font-weight: 600; }
         .section-desc { font-size: 0.8rem; color: var(--dim); }
 
         .form-group { margin-bottom: 1.25rem; }
         .form-group label { display: flex; align-items: center; gap: 0.75rem; font-size: 0.9rem; color: var(--text); cursor: pointer; }
         .form-group .help { font-size: 0.8rem; color: var(--dim); margin-top: 0.3rem; padding-left: 2.75rem; }
-        .form-group input[type="text"] { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 0.65rem 0.85rem; border-radius: 8px; font-size: 0.9rem; outline: none; transition: border-color 0.2s; }
-        .form-group input[type="text"]:focus { border-color: var(--accent); }
+        .form-group input[type="text"], .form-group textarea, .form-group select {
+            width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 0.65rem 0.85rem; border-radius: 8px; font-size: 0.9rem; outline: none; transition: border-color 0.2s; font-family: inherit;
+        }
+        .form-group input[type="text"]:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--accent); }
+        .form-group textarea { min-height: 80px; resize: vertical; font-family: monospace; font-size: 0.85rem; }
+        .form-group select { appearance: auto; }
 
         .toggle { position: relative; width: 44px; height: 24px; appearance: none; background: var(--border); border-radius: 12px; cursor: pointer; transition: background 0.3s; flex-shrink: 0; }
         .toggle:checked { background: var(--accent); }
@@ -76,7 +80,6 @@
         .theme-switch { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 0.35rem 0.7rem; border-radius: 6px; cursor: pointer; font-size: 1rem; transition: all 0.2s; }
         .theme-switch:hover { border-color: var(--accent); }
 
-        /* Mobile */
         @media (max-width: 768px) {
             .sidebar { display: none; }
             .main { margin-left: 0; padding: 1rem; }
@@ -87,37 +90,46 @@
     <aside class="sidebar">
         <div class="sidebar-brand">
             <h2>&#9202; SiteWatch</h2>
-            <p>Settings &amp; Preferences</p>
+            <p>{{ t.settings }} &amp; Preferences</p>
         </div>
         <nav class="sidebar-nav">
             <a href="#appearance" class="nav-item active" onclick="showSection('appearance', this)">
-                <span class="icon">&#127748;</span> Appearance
+                <span class="icon">&#127748;</span> {{ t.appearance }}
             </a>
             <a href="#notifications" class="nav-item" onclick="showSection('notifications', this)">
-                <span class="icon">&#128276;</span> Notifications
+                <span class="icon">&#128276;</span> {{ t.notifications }}
             </a>
-            <a href="#telegram" class="nav-item" onclick="showSection('telegram', this)">
-                <span class="icon">&#9993;</span> Telegram
+            <a href="#slack" class="nav-item" onclick="showSection('slack', this)">
+                <span class="icon">&#128172;</span> Slack
+            </a>
+            <a href="#discord" class="nav-item" onclick="showSection('discord', this)">
+                <span class="icon">&#128171;</span> Discord
+            </a>
+            <a href="#webhooks" class="nav-item" onclick="showSection('webhooks', this)">
+                <span class="icon">&#128279;</span> Webhooks
             </a>
             <a href="#audio" class="nav-item" onclick="showSection('audio', this)">
-                <span class="icon">&#128266;</span> Audio Alerts
+                <span class="icon">&#128266;</span> {{ t.audio_alerts }}
             </a>
             <div class="nav-divider"></div>
+            <a href="#language" class="nav-item" onclick="showSection('language', this)">
+                <span class="icon">&#127760;</span> {{ t.language }}
+            </a>
             <a href="#backup" class="nav-item" onclick="showSection('backup', this)">
-                <span class="icon">&#128230;</span> Backup &amp; Data
+                <span class="icon">&#128230;</span> {{ t.backup_data }}
             </a>
             <a href="#account" class="nav-item" onclick="showSection('account', this)">
-                <span class="icon">&#128100;</span> Account
+                <span class="icon">&#128100;</span> {{ t.account }}
             </a>
         </nav>
         <div class="sidebar-footer">
-            <a href="/dashboard">&#8592; Back to Dashboard</a>
+            <a href="/dashboard">&#8592; {{ t.back_to_dashboard }}</a>
         </div>
     </aside>
 
     <main class="main">
-        <h1 class="page-title">Settings</h1>
-        <p class="page-subtitle">Manage your account and notification preferences</p>
+        <h1 class="page-title">{{ t.settings }}</h1>
+        <p class="page-subtitle">{{ t.account_info }}</p>
 
         {% if message %}
         <div class="success">{{ message }}</div>
@@ -131,16 +143,16 @@
             <div class="section-header">
                 <div class="section-icon blue">&#127748;</div>
                 <div>
-                    <div class="section-title">Appearance</div>
-                    <div class="section-desc">Customize the look of your dashboard</div>
+                    <div class="section-title">{{ t.appearance }}</div>
+                    <div class="section-desc">{{ t.appearance_settings }}</div>
                 </div>
             </div>
             <div class="form-group">
                 <label>
                     <input type="checkbox" class="toggle" id="darkModeToggle" onchange="toggleTheme()">
-                    Dark Mode
+                    {{ t.dark_mode }}
                 </label>
-                <div class="help">Switch between dark and light theme. Your preference is saved locally.</div>
+                <div class="help">{{ t.dark_mode_help }}</div>
             </div>
         </div>
 
@@ -149,8 +161,8 @@
             <div class="section-header">
                 <div class="section-icon green">&#128276;</div>
                 <div>
-                    <div class="section-title">Email Notifications</div>
-                    <div class="section-desc">Get alerts when your sites go down</div>
+                    <div class="section-title">{{ t.email_notifications }}</div>
+                    <div class="section-desc">{{ t.notifications }}</div>
                 </div>
             </div>
             <form method="POST" action="/settings">
@@ -158,9 +170,9 @@
                 <div class="form-group">
                     <label>
                         <input type="checkbox" class="toggle" name="notify_email" value="true" {{ 'checked' if user.notify_email }}>
-                        Enable Email Alerts
+                        {{ t.email_alerts_enable }}
                     </label>
-                    <div class="help">You'll receive an email at <strong>{{ user.email }}</strong> when a site goes down or comes back up.</div>
+                    <div class="help">{{ t.email_alerts_help }} <strong>{{ user.email }}</strong> {{ t.when_site_down }}</div>
                 </div>
 
                 <!-- Telegram -->
@@ -168,33 +180,169 @@
                 <div class="form-group" style="margin-top: 1.25rem;">
                     <label>
                         <input type="checkbox" class="toggle" name="notify_telegram" value="true" {{ 'checked' if user.notify_telegram }}>
-                        Enable Telegram Alerts
+                        {{ t.enable_telegram }}
                     </label>
-                    <div class="help">Get instant notifications on Telegram — fast and free.</div>
+                    <div class="help">{{ t.telegram_help }}</div>
                 </div>
 
                 <div class="form-group">
-                    <label>Telegram Chat ID</label>
+                    <label>{{ t.chat_id }}</label>
                     <input type="text" name="telegram_chat_id" value="{{ telegram_chat_id_plain or '' }}" placeholder="Paste your Chat ID here">
                     <div class="help">
-                        How to get your Chat ID:<br>
-                        1. Open Telegram &amp; search <strong>@userinfobot</strong><br>
-                        2. Send <strong>/start</strong><br>
-                        3. Copy the number it replies with
+                        {{ t.chat_id_help1 }}<br>
+                        1. {{ t.chat_id_help2 }} <strong>@userinfobot</strong><br>
+                        2. {{ t.chat_id_help3 }} <strong>/start</strong><br>
+                        3. {{ t.chat_id_help4 }}
                     </div>
                 </div>
 
-                <!-- Audio -->
-                <div id="section-audio" style="scroll-margin-top: 1rem;"></div>
-                <div class="form-group" style="margin-top: 1.25rem;">
+                <button type="submit" class="btn">Save All</button>
+            </form>
+        </div>
+
+        <!-- Slack -->
+        <div id="section-slack" class="section">
+            <div class="section-header">
+                <div class="section-icon cyan">&#128172;</div>
+                <div>
+                    <div class="section-title">Slack {{ t.notifications }}</div>
+                    <div class="section-desc">{{ t.slack_help }}</div>
+                </div>
+            </div>
+            <form method="POST" action="/settings">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="notify_email" value="{{ 'true' if user.notify_email else '' }}">
+                <input type="hidden" name="notify_telegram" value="{{ 'true' if user.notify_telegram else '' }}">
+                <input type="hidden" name="telegram_chat_id" value="{{ telegram_chat_id_plain or '' }}">
+                <input type="hidden" name="notify_discord" value="{{ 'true' if user.notify_discord else '' }}">
+                <input type="hidden" name="discord_webhook_url" value="{{ discord_webhook_url }}">
+                <input type="hidden" name="custom_webhooks" value="{{ custom_webhooks }}">
+                <input type="hidden" name="audio_alert" value="{{ 'true' if user.audio_alert else '' }}">
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" class="toggle" name="notify_slack" value="true" {{ 'checked' if user.notify_slack }}>
+                        {{ t.enable_slack }}
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>{{ t.slack_webhook }}</label>
+                    <input type="text" name="slack_webhook_url" value="{{ slack_webhook_url }}" placeholder="https://hooks.slack.com/services/...">
+                    <div class="help">{{ t.slack_webhook_help }}</div>
+                </div>
+                <button type="submit" class="btn">Save Slack</button>
+            </form>
+        </div>
+
+        <!-- Discord -->
+        <div id="section-discord" class="section">
+            <div class="section-header">
+                <div class="section-icon purple">&#128171;</div>
+                <div>
+                    <div class="section-title">Discord {{ t.notifications }}</div>
+                    <div class="section-desc">{{ t.discord_help }}</div>
+                </div>
+            </div>
+            <form method="POST" action="/settings">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="notify_email" value="{{ 'true' if user.notify_email else '' }}">
+                <input type="hidden" name="notify_telegram" value="{{ 'true' if user.notify_telegram else '' }}">
+                <input type="hidden" name="telegram_chat_id" value="{{ telegram_chat_id_plain or '' }}">
+                <input type="hidden" name="notify_slack" value="{{ 'true' if user.notify_slack else '' }}">
+                <input type="hidden" name="slack_webhook_url" value="{{ slack_webhook_url }}">
+                <input type="hidden" name="custom_webhooks" value="{{ custom_webhooks }}">
+                <input type="hidden" name="audio_alert" value="{{ 'true' if user.audio_alert else '' }}">
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" class="toggle" name="notify_discord" value="true" {{ 'checked' if user.notify_discord }}>
+                        {{ t.enable_discord }}
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>{{ t.discord_webhook }}</label>
+                    <input type="text" name="discord_webhook_url" value="{{ discord_webhook_url }}" placeholder="https://discord.com/api/webhooks/...">
+                    <div class="help">{{ t.discord_webhook_help }}</div>
+                </div>
+                <button type="submit" class="btn">Save Discord</button>
+            </form>
+        </div>
+
+        <!-- Custom Webhooks -->
+        <div id="section-webhooks" class="section">
+            <div class="section-header">
+                <div class="section-icon yellow">&#128279;</div>
+                <div>
+                    <div class="section-title">{{ t.custom_webhooks }}</div>
+                    <div class="section-desc">{{ t.custom_webhooks_help }}</div>
+                </div>
+            </div>
+            <form method="POST" action="/settings">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="notify_email" value="{{ 'true' if user.notify_email else '' }}">
+                <input type="hidden" name="notify_telegram" value="{{ 'true' if user.notify_telegram else '' }}">
+                <input type="hidden" name="telegram_chat_id" value="{{ telegram_chat_id_plain or '' }}">
+                <input type="hidden" name="notify_slack" value="{{ 'true' if user.notify_slack else '' }}">
+                <input type="hidden" name="slack_webhook_url" value="{{ slack_webhook_url }}">
+                <input type="hidden" name="notify_discord" value="{{ 'true' if user.notify_discord else '' }}">
+                <input type="hidden" name="discord_webhook_url" value="{{ discord_webhook_url }}">
+                <input type="hidden" name="audio_alert" value="{{ 'true' if user.audio_alert else '' }}">
+                <div class="form-group">
+                    <label>{{ t.custom_webhooks }}</label>
+                    <textarea name="custom_webhooks" placeholder="https://example.com/webhook&#10;https://another.com/hook">{{ custom_webhooks }}</textarea>
+                    <div class="help">{{ t.custom_webhooks_help }}</div>
+                </div>
+                <button type="submit" class="btn">Save Webhooks</button>
+            </form>
+        </div>
+
+        <!-- Audio -->
+        <div id="section-audio" class="section">
+            <div class="section-header">
+                <div class="section-icon red">&#128266;</div>
+                <div>
+                    <div class="section-title">{{ t.audio_alerts }}</div>
+                    <div class="section-desc">{{ t.audio_help }}</div>
+                </div>
+            </div>
+            <form method="POST" action="/settings">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="notify_email" value="{{ 'true' if user.notify_email else '' }}">
+                <input type="hidden" name="notify_telegram" value="{{ 'true' if user.notify_telegram else '' }}">
+                <input type="hidden" name="telegram_chat_id" value="{{ telegram_chat_id_plain or '' }}">
+                <input type="hidden" name="notify_slack" value="{{ 'true' if user.notify_slack else '' }}">
+                <input type="hidden" name="slack_webhook_url" value="{{ slack_webhook_url }}">
+                <input type="hidden" name="notify_discord" value="{{ 'true' if user.notify_discord else '' }}">
+                <input type="hidden" name="discord_webhook_url" value="{{ discord_webhook_url }}">
+                <input type="hidden" name="custom_webhooks" value="{{ custom_webhooks }}">
+                <div class="form-group">
                     <label>
                         <input type="checkbox" class="toggle" name="audio_alert" value="true" {{ 'checked' if user.audio_alert }}>
-                        Enable Audio Alerts
+                        {{ t.enable_audio }}
                     </label>
-                    <div class="help">Play a beep sound in your browser when a monitored site goes down.</div>
+                    <div class="help">{{ t.audio_help }}</div>
                 </div>
+                <button type="submit" class="btn">Save Audio</button>
+            </form>
+        </div>
 
-                <button type="submit" class="btn">Save All Notification Settings</button>
+        <!-- Language -->
+        <div id="section-language" class="section">
+            <div class="section-header">
+                <div class="section-icon blue">&#127760;</div>
+                <div>
+                    <div class="section-title">{{ t.language }}</div>
+                    <div class="section-desc">{{ t.language_help }}</div>
+                </div>
+            </div>
+            <form method="POST" action="/settings/language">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <div class="form-group">
+                    <label>{{ t.language }}</label>
+                    <select name="language">
+                        <option value="en" {{ 'selected' if lang == 'en' }}>English</option>
+                        <option value="ar" {{ 'selected' if lang == 'ar' }}>العربية</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn">{{ t.save_language }}</button>
             </form>
         </div>
 
@@ -203,14 +351,14 @@
             <div class="section-header">
                 <div class="section-icon yellow">&#128230;</div>
                 <div>
-                    <div class="section-title">Backup &amp; Data</div>
-                    <div class="section-desc">Export and protect your monitoring data</div>
+                    <div class="section-title">{{ t.backup_data }}</div>
+                    <div class="section-desc">{{ t.backup_desc }}</div>
                 </div>
             </div>
-            <p style="color: var(--dim); font-size: 0.85rem; margin-bottom: 0.5rem;">Download a complete copy of your database — sites, check history, API keys, and settings.</p>
-            <p style="color: var(--dim); font-size: 0.8rem; margin-bottom: 1rem;">File format: SQLite (.db) — you can restore it by replacing <code style="background:var(--bg);padding:2px 6px;border-radius:4px;">data/monitor.db</code></p>
+            <p style="color: var(--dim); font-size: 0.85rem; margin-bottom: 0.5rem;">{{ t.backup_desc }}</p>
+            <p style="color: var(--dim); font-size: 0.8rem; margin-bottom: 1rem;">{{ t.backup_format }} <code style="background:var(--bg);padding:2px 6px;border-radius:4px;">data/monitor.db</code></p>
             <div class="btn-row">
-                <a href="/backup/download" class="btn btn-green" style="text-decoration: none;">&#128229; Download Backup</a>
+                <a href="/backup/download" class="btn btn-green" style="text-decoration: none;">&#128229; {{ t.download_backup }}</a>
             </div>
         </div>
 
@@ -219,32 +367,32 @@
             <div class="section-header">
                 <div class="section-icon purple">&#128100;</div>
                 <div>
-                    <div class="section-title">Account</div>
-                    <div class="section-desc">Your account information</div>
+                    <div class="section-title">{{ t.account }}</div>
+                    <div class="section-desc">{{ t.account_info }}</div>
                 </div>
             </div>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                 <div>
-                    <div style="font-size:0.8rem; color:var(--dim); margin-bottom:0.25rem;">Username</div>
+                    <div style="font-size:0.8rem; color:var(--dim); margin-bottom:0.25rem;">{{ t.username }}</div>
                     <div style="font-size:0.95rem; font-weight:600;">{{ user.username }}</div>
                 </div>
                 <div>
-                    <div style="font-size:0.8rem; color:var(--dim); margin-bottom:0.25rem;">Email</div>
+                    <div style="font-size:0.8rem; color:var(--dim); margin-bottom:0.25rem;">{{ t.email }}</div>
                     <div style="font-size:0.95rem; font-weight:600;">{{ user.email }}</div>
                 </div>
                 <div>
-                    <div style="font-size:0.8rem; color:var(--dim); margin-bottom:0.25rem;">Plan</div>
+                    <div style="font-size:0.8rem; color:var(--dim); margin-bottom:0.25rem;">{{ t.plan }}</div>
                     <div style="font-size:0.95rem; font-weight:600; text-transform:capitalize;">{{ user.plan }}</div>
                 </div>
                 <div>
-                    <div style="font-size:0.8rem; color:var(--dim); margin-bottom:0.25rem;">Email Verified</div>
+                    <div style="font-size:0.8rem; color:var(--dim); margin-bottom:0.25rem;">{{ t.email_verified }}</div>
                     <div style="font-size:0.95rem; font-weight:600; color: {% if user.is_verified %}#22c55e{% else %}#ef4444{% endif %};">{% if user.is_verified %}Yes{% else %}No{% endif %}</div>
                 </div>
             </div>
             <div class="btn-row" style="margin-top:1.25rem;">
-                <a href="/pricing" class="btn" style="text-decoration:none;">Upgrade Plan</a>
-                <a href="/api-keys" class="btn btn-outline" style="text-decoration:none;">Manage API Keys</a>
-                <form method="POST" action="/logout" style="display:inline"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button type="submit" class="btn btn-outline" style="text-decoration:none; color:#ef4444; border-color:rgba(239,68,68,0.3);">Logout</button></form>
+                <a href="/pricing" class="btn" style="text-decoration:none;">{{ t.upgrade }}</a>
+                <a href="/api-keys" class="btn btn-outline" style="text-decoration:none;">{{ t.manage_api_keys }}</a>
+                <form method="POST" action="/logout" style="display:inline"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button type="submit" class="btn btn-outline" style="text-decoration:none; color:#ef4444; border-color:rgba(239,68,68,0.3);">{{ t.logout }}</button></form>
             </div>
         </div>
     </main>
@@ -257,8 +405,6 @@
             document.documentElement.setAttribute('data-theme', t);
             const dm = document.getElementById('darkModeToggle');
             if (dm) dm.checked = (t === 'dark');
-            const sw = document.querySelector('.theme-switch');
-            if (sw) sw.innerHTML = t === 'dark' ? '&#9790;' : '&#9728;';
         }
         function toggleTheme() {
             const t = getTheme() === 'dark' ? 'light' : 'dark';
