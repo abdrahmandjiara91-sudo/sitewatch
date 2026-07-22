@@ -478,7 +478,13 @@ async def logout(request: Request, _: bool = Depends(verify_csrf)):
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request, user: User = Depends(require_auth), error: str = ""):
     plan_info = PLANS[user.plan]
-    safe_errors = {"Cannot monitor private or internal URLs"}
+    safe_errors = {
+        "Cannot monitor private or internal URLs",
+        "Invalid URL. Please enter a valid http:// or https:// link.",
+        "Only http:// and https:// URLs are allowed.",
+        "URL is too long (max 2000 characters).",
+        "URL already exists.",
+    }
     display_error = error if error in safe_errors else ""
 
     async with async_session() as db:
@@ -541,15 +547,15 @@ async def add_site(
     from urllib.parse import urlparse as _urlparse
     parsed = _urlparse(url)
     if not parsed.scheme or not parsed.hostname:
-        return RedirectResponse("/dashboard?error=Invalid+URL", status_code=303)
+        return RedirectResponse("/dashboard?error=Invalid+URL.+Please+enter+a+valid+http%3A%2F%2F+or+https%3A%2F%2F+link.", status_code=303)
     if parsed.scheme not in ("http", "https"):
-        return RedirectResponse("/dashboard?error=Only+HTTP+and+HTTPS+URLs+are+allowed", status_code=303)
+        return RedirectResponse("/dashboard?error=Only+http%3A%2F%2F+and+https%3A%2F%2F+URLs+are+allowed.", status_code=303)
     if parsed.hostname and _is_private_host(parsed.hostname):
         return RedirectResponse("/dashboard?error=Cannot+monitor+private+or+internal+URLs", status_code=303)
     if len(name) > 200:
         name = name[:200]
     if len(url) > 2000:
-        return RedirectResponse("/dashboard?error=URL+too+long", status_code=303)
+        return RedirectResponse("/dashboard?error=URL+is+too+long+(max+2000+characters).", status_code=303)
 
     plan_info = PLANS[user.plan]
 
@@ -564,8 +570,14 @@ async def add_site(
                 "sites": [],
                 "sites_count": count,
                 "max_sites": plan_info["max_sites"],
-                "error": f"Plan limit reached! Upgrade to add more sites.",
+                "error": "Plan limit reached! Upgrade to add more sites.",
             })
+
+        existing = (await db.execute(
+            select(Site).where(Site.user_id == user.id, Site.url == url)
+        )).scalar_one_or_none()
+        if existing:
+            return RedirectResponse("/dashboard?error=URL+already+exists.", status_code=303)
 
         site = Site(
             user_id=user.id,
