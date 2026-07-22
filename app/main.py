@@ -18,7 +18,7 @@ import hmac
 import asyncio
 import datetime
 
-from app.database import init_db, async_session
+from app.database import init_db, async_session, engine, DATABASE_URL
 from app.models import User, Site, Check, PLANS, ApiKey, VerificationToken, PasswordResetToken, RevokedToken
 from app.auth import hash_password, verify_password, create_token, get_current_user, require_auth
 from app.monitor import run_checks, check_site, _is_private_host
@@ -86,6 +86,46 @@ async def security_headers(request: Request, call_next):
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
+
+@app.get("/diagnose")
+async def diagnose():
+    import traceback
+    results = {}
+    try:
+        async with async_session() as db:
+            # Check users table columns
+            from sqlalchemy import text as sqltext
+            if "sqlite" in str(engine.url):
+                r = await db.execute(sqltext("PRAGMA table_info(users)"))
+                cols = [row[1] for row in r.fetchall()]
+            else:
+                r = await db.execute(sqltext(
+                    "SELECT column_name FROM information_schema.columns WHERE table_name = 'users' ORDER BY ordinal_position"
+                ))
+                cols = [row[0] for row in r.fetchall()]
+            results["user_columns"] = cols
+
+            # Check required columns exist
+            required = ["notify_slack", "slack_webhook_url", "notify_discord", "discord_webhook_url", "custom_webhooks", "language"]
+            missing = [c for c in required if c not in cols]
+            results["missing_columns"] = missing
+
+            # Try reading a user
+            from app.models import User
+            r = await db.execute(select(User).limit(1))
+            user = r.scalar_one_or_none()
+            if user:
+                results["user_id"] = user.id
+                results["user_username"] = user.username
+                results["has_notify_slack"] = hasattr(user, 'notify_slack')
+            else:
+                results["user_found"] = False
+    except Exception as e:
+        results["error"] = str(e)
+        results["traceback"] = traceback.format_exc()[-500:]
+
+    return results
 
 
 @app.get("/status/{username}", response_class=HTMLResponse)
@@ -1111,7 +1151,7 @@ async def backup_download(request: Request, user: User = Depends(require_auth)):
     if not user.is_admin:
         return RedirectResponse("/settings?error=admin_only", status_code=303)
 
-    from app.database import DATABASE_URL
+    from app.database import DATABASE_URL as _unused
     if "sqlite" in DATABASE_URL:
         import shutil
         import tempfile
