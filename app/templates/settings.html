@@ -108,6 +108,7 @@
             <a href="#notifications" class="nav-item" onclick="showSection('notifications', this)">
                 <span class="icon">&#128276;</span> {{ t.notifications }}
             </a>
+            {% if user.plan != "free" %}
             <a href="#slack" class="nav-item" onclick="showSection('slack', this)">
                 <span class="icon">&#128172;</span> Slack
             </a>
@@ -117,6 +118,7 @@
             <a href="#webhooks" class="nav-item" onclick="showSection('webhooks', this)">
                 <span class="icon">&#128279;</span> Webhooks
             </a>
+            {% endif %}
             <a href="#audio" class="nav-item" onclick="showSection('audio', this)">
                 <span class="icon">&#128266;</span> {{ t.audio_alerts }}
             </a>
@@ -221,6 +223,7 @@
         </div>
 
         <!-- Slack -->
+        {% if user.plan != "free" %}
         <div id="section-slack" class="section">
             <div class="section-header">
                 <div class="section-icon cyan">&#128172;</div>
@@ -319,6 +322,7 @@
                 <button type="submit" class="btn">Save Webhooks</button>
             </form>
         </div>
+        {% endif %}
 
         <!-- Audio -->
         <div id="section-audio" class="section">

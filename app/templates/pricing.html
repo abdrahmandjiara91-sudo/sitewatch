@@ -131,6 +131,17 @@
                     <li>{{ t.check_every }} {{ p.interval }} {{ t.seconds }}</li>
                     <li>{{ t.uptime_monitoring }}</li>
                     <li>{{ t.response_time_tracking }}</li>
+                    {% if key == "free" %}
+                    <li>&#128231; Email alerts only</li>
+                    {% elif key == "pro" %}
+                    <li>&#128231; Email + &#128242; Telegram</li>
+                    <li>&#128266; Audio alerts</li>
+                    {% elif key == "enterprise" %}
+                    <li>&#128231; Email + &#128242; Telegram</li>
+                    <li>&#128172; Slack + &#128171; Discord</li>
+                    <li>&#128279; Custom Webhooks</li>
+                    <li>&#128266; Audio alerts</li>
+                    {% endif %}
                     {% if key != "free" %}<li>{{ t.ssl_cert_monitoring }}</li>{% endif %}
                     {% if key == "enterprise" %}<li>{{ t.priority_support }}</li>{% endif %}
                     {% if key == "enterprise" %}<li>{{ t.custom_intervals }}</li>{% endif %}
@@ -150,8 +161,8 @@
             <h3>{{ t.contact_to_upgrade }}</h3>
             <p style="color: var(--muted); margin-bottom: 1rem;">{{ t.choose_plan }}</p>
             <div class="contact-links">
-                <a href="https://wa.me/213776781869" target="_blank">&#128242; WhatsApp</a>
-                <a href="mailto:abdrahmandjiara91@gmail.com">&#128231; Email</a>
+                <a href="https://wa.me/213776781869?text=Hello%2C%20I%20want%20to%20upgrade%20my%20SiteWatch%20plan" target="_blank">&#128242; WhatsApp</a>
+                <a href="mailto:abdrahmandjiara91@gmail.com?subject=SiteWatch%20Plan%20Upgrade">&#128231; Email</a>
             </div>
             <p class="payment-note">{{ t.payment_note }}</p>
         </div>

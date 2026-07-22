@@ -532,6 +532,23 @@ async def dashboard(request: Request, user: User = Depends(require_auth), error:
     })
 
 
+@app.post("/admin/self-plan")
+async def admin_self_plan(
+    request: Request,
+    plan: str = Form(...),
+    user: User = Depends(require_auth),
+    _: bool = Depends(verify_csrf),
+):
+    if not user.is_admin:
+        return RedirectResponse("/dashboard", status_code=303)
+    if plan in PLANS:
+        async with async_session() as db:
+            u = await db.get(User, user.id)
+            u.plan = plan
+            await db.commit()
+    return RedirectResponse("/dashboard?message=Plan+updated!", status_code=303)
+
+
 @app.post("/sites/add")
 @limiter.limit("20/minute")
 async def add_site(
@@ -788,11 +805,12 @@ async def update_settings(
         u.notify_telegram = notify_telegram
         u.audio_alert = audio_alert
         u.telegram_chat_id = encrypt_value(telegram_chat_id) if telegram_chat_id else None
-        u.notify_slack = notify_slack
-        u.slack_webhook_url = slack_webhook_url if slack_webhook_url else None
-        u.notify_discord = notify_discord
-        u.discord_webhook_url = discord_webhook_url if discord_webhook_url else None
-        u.custom_webhooks = custom_webhooks if custom_webhooks.strip() else None
+        if user.plan != "free":
+            u.notify_slack = notify_slack
+            u.slack_webhook_url = slack_webhook_url if slack_webhook_url else None
+            u.notify_discord = notify_discord
+            u.discord_webhook_url = discord_webhook_url if discord_webhook_url else None
+            u.custom_webhooks = custom_webhooks if custom_webhooks.strip() else None
         u.notify_slow = notify_slow
         u.slow_threshold_ms = max(500, min(30000, slow_threshold_ms))
         await db.commit()

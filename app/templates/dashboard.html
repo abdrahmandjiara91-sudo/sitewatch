@@ -222,6 +222,23 @@
             {% endif %}
         </div>
 
+        {% if user.is_admin %}
+        <div class="plan-bar" style="border-color: rgba(168,85,247,0.3); background: rgba(168,85,247,0.05);">
+            <div class="plan-text">
+                <strong style="color: #c084fc;">&#128737; Admin</strong> &mdash; Quick plan switch
+            </div>
+            <form method="POST" action="/admin/self-plan" style="display:flex; gap:0.5rem; align-items:center;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <select name="plan" style="background:var(--input-bg); border:1px solid var(--input-border); color:var(--text); padding:0.4rem 0.6rem; border-radius:6px; font-size:0.85rem;">
+                    <option value="free" {{ 'selected' if user.plan == 'free' }}>Free</option>
+                    <option value="pro" {{ 'selected' if user.plan == 'pro' }}>Pro $9</option>
+                    <option value="enterprise" {{ 'selected' if user.plan == 'enterprise' }}>Enterprise $29</option>
+                </select>
+                <button type="submit" class="btn btn-sm">Switch</button>
+            </form>
+        </div>
+        {% endif %}
+
         {% if error is defined and error %}
         <div class="error-msg">{{ error }}</div>
         {% endif %}
