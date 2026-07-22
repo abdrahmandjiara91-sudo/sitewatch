@@ -111,6 +111,9 @@
             <a href="#audio" class="nav-item" onclick="showSection('audio', this)">
                 <span class="icon">&#128266;</span> {{ t.audio_alerts }}
             </a>
+            <a href="#slow" class="nav-item" onclick="showSection('slow', this)">
+                <span class="icon">&#128034;</span> Slow Response
+            </a>
             <div class="nav-divider"></div>
             <a href="#language" class="nav-item" onclick="showSection('language', this)">
                 <span class="icon">&#127760;</span> {{ t.language }}
@@ -167,6 +170,14 @@
             </div>
             <form method="POST" action="/settings">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="notify_slack" value="{{ 'true' if user.notify_slack else '' }}">
+                <input type="hidden" name="slack_webhook_url" value="{{ slack_webhook_url }}">
+                <input type="hidden" name="notify_discord" value="{{ 'true' if user.notify_discord else '' }}">
+                <input type="hidden" name="discord_webhook_url" value="{{ discord_webhook_url }}">
+                <input type="hidden" name="custom_webhooks" value="{{ custom_webhooks }}">
+                <input type="hidden" name="audio_alert" value="{{ 'true' if user.audio_alert else '' }}">
+                <input type="hidden" name="notify_slow" value="{{ 'true' if user.notify_slow else '' }}">
+                <input type="hidden" name="slow_threshold_ms" value="{{ user.slow_threshold_ms or 3000 }}">
                 <div class="form-group">
                     <label>
                         <input type="checkbox" class="toggle" name="notify_email" value="true" {{ 'checked' if user.notify_email }}>
@@ -218,6 +229,8 @@
                 <input type="hidden" name="discord_webhook_url" value="{{ discord_webhook_url }}">
                 <input type="hidden" name="custom_webhooks" value="{{ custom_webhooks }}">
                 <input type="hidden" name="audio_alert" value="{{ 'true' if user.audio_alert else '' }}">
+                <input type="hidden" name="notify_slow" value="{{ 'true' if user.notify_slow else '' }}">
+                <input type="hidden" name="slow_threshold_ms" value="{{ user.slow_threshold_ms or 3000 }}">
                 <div class="form-group">
                     <label>
                         <input type="checkbox" class="toggle" name="notify_slack" value="true" {{ 'checked' if user.notify_slack }}>
@@ -251,6 +264,8 @@
                 <input type="hidden" name="slack_webhook_url" value="{{ slack_webhook_url }}">
                 <input type="hidden" name="custom_webhooks" value="{{ custom_webhooks }}">
                 <input type="hidden" name="audio_alert" value="{{ 'true' if user.audio_alert else '' }}">
+                <input type="hidden" name="notify_slow" value="{{ 'true' if user.notify_slow else '' }}">
+                <input type="hidden" name="slow_threshold_ms" value="{{ user.slow_threshold_ms or 3000 }}">
                 <div class="form-group">
                     <label>
                         <input type="checkbox" class="toggle" name="notify_discord" value="true" {{ 'checked' if user.notify_discord }}>
@@ -285,6 +300,8 @@
                 <input type="hidden" name="notify_discord" value="{{ 'true' if user.notify_discord else '' }}">
                 <input type="hidden" name="discord_webhook_url" value="{{ discord_webhook_url }}">
                 <input type="hidden" name="audio_alert" value="{{ 'true' if user.audio_alert else '' }}">
+                <input type="hidden" name="notify_slow" value="{{ 'true' if user.notify_slow else '' }}">
+                <input type="hidden" name="slow_threshold_ms" value="{{ user.slow_threshold_ms or 3000 }}">
                 <div class="form-group">
                     <label>{{ t.custom_webhooks }}</label>
                     <textarea name="custom_webhooks" placeholder="https://example.com/webhook&#10;https://another.com/hook">{{ custom_webhooks }}</textarea>
@@ -313,6 +330,8 @@
                 <input type="hidden" name="notify_discord" value="{{ 'true' if user.notify_discord else '' }}">
                 <input type="hidden" name="discord_webhook_url" value="{{ discord_webhook_url }}">
                 <input type="hidden" name="custom_webhooks" value="{{ custom_webhooks }}">
+                <input type="hidden" name="notify_slow" value="{{ 'true' if user.notify_slow else '' }}">
+                <input type="hidden" name="slow_threshold_ms" value="{{ user.slow_threshold_ms or 3000 }}">
                 <div class="form-group">
                     <label>
                         <input type="checkbox" class="toggle" name="audio_alert" value="true" {{ 'checked' if user.audio_alert }}>
@@ -321,6 +340,42 @@
                     <div class="help">{{ t.audio_help }}</div>
                 </div>
                 <button type="submit" class="btn">Save Audio</button>
+            </form>
+        </div>
+
+        <!-- Slow Response -->
+        <div id="section-slow" class="section">
+            <div class="section-header">
+                <div class="section-icon yellow">&#128034;</div>
+                <div>
+                    <div class="section-title">Slow Response Alerts</div>
+                    <div class="section-desc">Get notified when a site responds slowly</div>
+                </div>
+            </div>
+            <form method="POST" action="/settings">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="notify_email" value="{{ 'true' if user.notify_email else '' }}">
+                <input type="hidden" name="notify_telegram" value="{{ 'true' if user.notify_telegram else '' }}">
+                <input type="hidden" name="telegram_chat_id" value="{{ telegram_chat_id_plain or '' }}">
+                <input type="hidden" name="notify_slack" value="{{ 'true' if user.notify_slack else '' }}">
+                <input type="hidden" name="slack_webhook_url" value="{{ slack_webhook_url }}">
+                <input type="hidden" name="notify_discord" value="{{ 'true' if user.notify_discord else '' }}">
+                <input type="hidden" name="discord_webhook_url" value="{{ discord_webhook_url }}">
+                <input type="hidden" name="custom_webhooks" value="{{ custom_webhooks }}">
+                <input type="hidden" name="audio_alert" value="{{ 'true' if user.audio_alert else '' }}">
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" class="toggle" name="notify_slow" value="true" {{ 'checked' if user.notify_slow }}>
+                        Enable Slow Response Alerts
+                    </label>
+                    <div class="help">When any of your sites responds slower than the threshold, you'll get an email alert.</div>
+                </div>
+                <div class="form-group">
+                    <label>Threshold (milliseconds)</label>
+                    <input type="text" name="slow_threshold_ms" value="{{ user.slow_threshold_ms or 3000 }}" placeholder="3000" style="width:150px;">
+                    <div class="help">Default: 3000ms (3 seconds). Min: 500ms, Max: 30000ms.</div>
+                </div>
+                <button type="submit" class="btn">Save Slow Alerts</button>
             </form>
         </div>
 

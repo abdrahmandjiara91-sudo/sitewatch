@@ -50,6 +50,20 @@
         .ssl-valid { background: #166534; color: #4ade80; }
         .ssl-expiring { background: #713f12; color: #facc15; }
         .ssl-expired { background: #7f1d1d; color: #f87171; }
+
+        .notif-section { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .notif-section h3 { font-size: 1rem; color: #94a3b8; margin-bottom: 1rem; }
+        .notif-section label { display: flex; align-items: center; gap: 0.75rem; font-size: 0.9rem; color: #e2e8f0; cursor: pointer; margin-bottom: 0.75rem; }
+        .notif-section input[type="text"], .notif-section textarea { width: 100%; background: #0f172a; border: 1px solid #475569; color: #e2e8f0; padding: 0.6rem 0.8rem; border-radius: 8px; font-size: 0.9rem; outline: none; font-family: inherit; margin-bottom: 0.75rem; }
+        .notif-section input[type="text"]:focus, .notif-section textarea:focus { border-color: #3b82f6; }
+        .notif-section textarea { min-height: 60px; resize: vertical; font-family: monospace; font-size: 0.85rem; }
+        .notif-section .help { font-size: 0.8rem; color: #64748b; margin-top: -0.5rem; margin-bottom: 0.75rem; }
+        .toggle { position: relative; width: 44px; height: 24px; appearance: none; background: #475569; border-radius: 12px; cursor: pointer; transition: background 0.3s; flex-shrink: 0; }
+        .toggle:checked { background: #3b82f6; }
+        .toggle::before { content: ''; position: absolute; width: 20px; height: 20px; background: #fff; border-radius: 50%; top: 2px; left: 2px; transition: transform 0.3s; }
+        .toggle:checked::before { transform: translateX(20px); }
+        .btn { background: #2563eb; color: #fff; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: filter 0.2s; }
+        .btn:hover { filter: brightness(1.15); }
     </style>
 </head>
 <body>
@@ -149,6 +163,33 @@
             <p>{{ t.no_checks_yet }}</p>
         </div>
         {% endif %}
+
+        <div class="notif-section">
+            <h3>&#128276; Per-Site Notification Channels</h3>
+            <p style="font-size:0.8rem; color:#64748b; margin-bottom:1rem;">Override global settings for this site. Leave empty to use global notification channels.</p>
+            <form method="POST" action="/sites/{{ site.id }}/notifications">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <label>
+                    <input type="checkbox" class="toggle" name="notify_slack" value="true" {{ 'checked' if site.notify_slack }}>
+                    Slack
+                </label>
+                <input type="text" name="slack_webhook_url" value="{{ slack_webhook_url }}" placeholder="https://hooks.slack.com/services/...">
+                <div class="help">Slack webhook URL for this site</div>
+
+                <label style="margin-top:1rem;">
+                    <input type="checkbox" class="toggle" name="notify_discord" value="true" {{ 'checked' if site.notify_discord }}>
+                    Discord
+                </label>
+                <input type="text" name="discord_webhook_url" value="{{ discord_webhook_url }}" placeholder="https://discord.com/api/webhooks/...">
+                <div class="help">Discord webhook URL for this site</div>
+
+                <label style="margin-top:1rem;">Custom Webhooks</label>
+                <textarea name="custom_webhooks" placeholder="https://example.com/webhook&#10;https://another.com/hook">{{ custom_webhooks }}</textarea>
+                <div class="help">One webhook URL per line</div>
+
+                <button type="submit" class="btn">Save Site Notifications</button>
+            </form>
+        </div>
     </div>
     <script>
         if ('serviceWorker' in navigator) {

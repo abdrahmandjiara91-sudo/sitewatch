@@ -41,6 +41,7 @@
             <a href="/dashboard">Dashboard</a>
             <a href="/stats" class="active">{{ t.statistics }}</a>
             <a href="/settings">{{ t.settings }}</a>
+            <a href="/blog">Blog</a>
             <form method="POST" action="/logout" style="display:inline"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button type="submit" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:0.85rem;padding:0;">{{ t.logout }}</button></form>
         </div>
     </nav>

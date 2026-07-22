@@ -129,45 +129,6 @@ async def health():
     return {"status": "ok"}
 
 
-@app.get("/diagnose")
-async def diagnose():
-    import traceback
-    results = {}
-    try:
-        async with async_session() as db:
-            # Check users table columns
-            from sqlalchemy import text as sqltext
-            if "sqlite" in str(engine.url):
-                r = await db.execute(sqltext("PRAGMA table_info(users)"))
-                cols = [row[1] for row in r.fetchall()]
-            else:
-                r = await db.execute(sqltext(
-                    "SELECT column_name FROM information_schema.columns WHERE table_name = 'users' ORDER BY ordinal_position"
-                ))
-                cols = [row[0] for row in r.fetchall()]
-            results["user_columns"] = cols
-
-            # Check required columns exist
-            required = ["notify_slack", "slack_webhook_url", "notify_discord", "discord_webhook_url", "custom_webhooks", "language"]
-            missing = [c for c in required if c not in cols]
-            results["missing_columns"] = missing
-
-            # Try reading a user
-            from app.models import User
-            r = await db.execute(select(User).limit(1))
-            user = r.scalar_one_or_none()
-            if user:
-                results["user_id"] = user.id
-                results["user_username"] = user.username
-                results["has_notify_slack"] = hasattr(user, 'notify_slack')
-            else:
-                results["user_found"] = False
-    except Exception as e:
-        results["error"] = str(e)
-        results["traceback"] = traceback.format_exc()[-500:]
-
-    return results
-
 
 @app.get("/status/{username}", response_class=HTMLResponse)
 async def public_status_page(request: Request, username: str):
@@ -668,12 +629,13 @@ async def site_detail(request: Request, site_id: int, user: User = Depends(requi
     session_id, is_new = get_or_create_csrf_session_id(request)
     lang = request.cookies.get("lang", "en")
     t = get_translations(lang)
-    return templates.TemplateResponse(request, "detail.html", {
+    return render(request, "detail.html", {
         "user": user,
         "site": site,
         "checks": checks,
-        "csrf_token": generate_csrf_token(session_id),
-        "t": t,
+        "slack_webhook_url": site.slack_webhook_url or "",
+        "discord_webhook_url": site.discord_webhook_url or "",
+        "custom_webhooks": site.custom_webhooks or "",
     })
 
 
