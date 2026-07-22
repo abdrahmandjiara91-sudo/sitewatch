@@ -272,7 +272,9 @@ def render(request: Request, name: str, context: dict, status_code: int = 200):
     a valid CSRF token + cookie. Use this instead of templates.TemplateResponse
     for any page with a <form>."""
     session_id, is_new = get_or_create_csrf_session_id(request)
-    context = {**context, "csrf_token": generate_csrf_token(session_id)}
+    lang = request.cookies.get("lang", "en")
+    t = get_translations(lang)
+    context = {**context, "csrf_token": generate_csrf_token(session_id), "t": t}
     response = templates.TemplateResponse(request, name, context, status_code=status_code)
     set_csrf_cookie_if_new(response, session_id, is_new)
     return response
@@ -297,7 +299,9 @@ async def index(request: Request):
 @app.get("/landing", response_class=HTMLResponse)
 async def landing_page(request: Request):
     user = await get_current_user(request)
-    return templates.TemplateResponse(request, "landing.html", {"user": user})
+    lang = request.cookies.get("lang", "en")
+    t = get_translations(lang)
+    return templates.TemplateResponse(request, "landing.html", {"user": user, "t": t})
 
 
 SAFE_ERRORS = {
@@ -616,17 +620,24 @@ async def site_detail(request: Request, site_id: int, user: User = Depends(requi
         )
         checks = result.scalars().all()
 
+    session_id, is_new = get_or_create_csrf_session_id(request)
+    lang = request.cookies.get("lang", "en")
+    t = get_translations(lang)
     return templates.TemplateResponse(request, "detail.html", {
         "user": user,
         "site": site,
         "checks": checks,
+        "csrf_token": generate_csrf_token(session_id),
+        "t": t,
     })
 
 
 @app.get("/pricing", response_class=HTMLResponse)
 async def pricing_page(request: Request):
     user = await get_current_user(request)
-    return templates.TemplateResponse(request, "pricing.html", {"user": user, "plans": PLANS})
+    lang = request.cookies.get("lang", "en")
+    t = get_translations(lang)
+    return templates.TemplateResponse(request, "pricing.html", {"user": user, "plans": PLANS, "t": t})
 
 
 @app.get("/admin", response_class=HTMLResponse)
@@ -1208,7 +1219,9 @@ async def backup_download(request: Request, user: User = Depends(require_auth)):
 @app.get("/changelog", response_class=HTMLResponse)
 async def changelog_page(request: Request):
     user = await get_current_user(request)
-    return templates.TemplateResponse(request, "changelog.html", {"user": user})
+    lang = request.cookies.get("lang", "en")
+    t = get_translations(lang)
+    return templates.TemplateResponse(request, "changelog.html", {"user": user, "t": t})
 
 
 @app.post("/settings/audio")

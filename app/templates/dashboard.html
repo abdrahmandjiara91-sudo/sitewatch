@@ -151,14 +151,14 @@
             <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">&#9790;</button>
             <span class="plan-badge plan-{{ user.plan }}">{{ plan.name }}</span>
             <div class="header-nav">
-                <a href="/stats">&#128200; Statistics</a>
-                <a href="/pricing">&#128176; Pricing</a>
-                <a href="/settings">&#9881; Settings</a>
-                <a href="/api-keys">&#128273; API Keys</a>
-                <a href="/status/{{ user.username }}" target="_blank">&#128200; Status</a>
-                {% if user.is_admin %}<a href="/admin">&#128737; Admin</a>{% endif %}
+                <a href="/stats">&#128200; {{ t.statistics }}</a>
+                <a href="/pricing">&#128176; {{ t.pricing }}</a>
+                <a href="/settings">&#9881; {{ t.settings }}</a>
+                <a href="/api-keys">&#128273; {{ t.api_keys }}</a>
+                <a href="/status/{{ user.username }}" target="_blank">&#128200; {{ t.status_page_title }}</a>
+                {% if user.is_admin %}<a href="/admin">&#128737; {{ t.admin }}</a>{% endif %}
                 <a href="#" class="user-btn">&#128100; {{ user.username }}</a>
-                <form method="POST" action="/logout" style="display:inline"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button type="submit" class="danger" style="background:none;border:none;cursor:pointer;padding:0;font:inherit;">&#128682; Logout</button></form>
+                <form method="POST" action="/logout" style="display:inline"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button type="submit" class="danger" style="background:none;border:none;cursor:pointer;padding:0;font:inherit;">&#128682; {{ t.logout }}</button></form>
             </div>
         </div>
     </div>
@@ -166,10 +166,10 @@
     <div class="container">
         <div class="plan-bar">
             <div class="plan-text">
-                <strong>{{ plan.name }} Plan</strong> &mdash; {{ sites_count }}/{{ max_sites }} sites monitored
+                <strong>{{ plan.name }} {{ t.plan }}</strong> &mdash; {{ sites_count }}/{{ max_sites }} {{ t.sites_monitored }}
             </div>
             {% if user.plan == "free" %}
-            <a href="/pricing">Upgrade &rarr;</a>
+            <a href="/pricing">{{ t.upgrade }} &rarr;</a>
             {% endif %}
         </div>
 
@@ -180,34 +180,34 @@
         <div class="stats-row">
             <div class="stat-card">
                 <div class="val stat-blue">{{ sites_count }}</div>
-                <div class="label">Total Sites</div>
+                <div class="label">{{ t.total_sites }}</div>
             </div>
             <div class="stat-card">
                 <div class="val stat-green">{{ sites|selectattr('last_check.is_up', 'eq', true)|list|length }}</div>
-                <div class="label">Sites Up</div>
+                <div class="label">{{ t.sites_up }}</div>
             </div>
             <div class="stat-card">
                 <div class="val stat-red">{{ sites|selectattr('last_check.is_up', 'eq', false)|list|length }}</div>
-                <div class="label">Sites Down</div>
+                <div class="label">{{ t.sites_down }}</div>
             </div>
             <div class="stat-card">
                 <div class="val stat-blue">{{ plan.interval }}s</div>
-                <div class="label">Check Interval</div>
+                <div class="label">{{ t.check_interval }}</div>
             </div>
         </div>
 
         {% if sites_count < max_sites %}
         <div class="add-form">
-            <h2>+ Add Website</h2>
+            <h2>+ {{ t.add_site }}</h2>
             <form method="POST" action="/sites/add">
 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <div class="form-row">
-                    <input name="name" placeholder="Site Name" required maxlength="200">
+                    <input name="name" placeholder="{{ t.site_name_label }}" required maxlength="200">
                     <input name="url" placeholder="https://example.com" required maxlength="2000">
-                    <input name="keyword" placeholder="Keyword (optional)" maxlength="500">
-                    <input name="expected_status" type="number" value="200" style="width:80px" title="Expected HTTP status">
-                    <label><input type="checkbox" name="check_ssl" value="true"> SSL</label>
-                    <button type="submit" class="btn">Add</button>
+                    <input name="keyword" placeholder="{{ t.keyword_optional }}" maxlength="500">
+                    <input name="expected_status" type="number" value="200" style="width:80px" title="{{ t.expected_status }}">
+                    <label><input type="checkbox" name="check_ssl" value="true"> {{ t.ssl_check }}</label>
+                    <button type="submit" class="btn">{{ t.add }}</button>
                 </div>
             </form>
         </div>
@@ -215,9 +215,9 @@
 
         {% if sites %}
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
-            <h2 style="font-size:1rem; color:#94a3b8;">Your Sites</h2>
+            <h2 style="font-size:1rem; color:#94a3b8;">{{ t.your_sites }}</h2>
             {% if sites_count < max_sites %}
-            <button onclick="document.getElementById('bulkModal').classList.add('active')" class="btn btn-sm btn-outline">Bulk Import</button>
+            <button onclick="document.getElementById('bulkModal').classList.add('active')" class="btn btn-sm btn-outline">{{ t.bulk_import }}</button>
             {% endif %}
         </div>
         <div class="sites-grid">
@@ -233,35 +233,35 @@
                             <div class="uptime-bar">
                                 <div class="uptime-fill {{ 'good' if item.uptime >= 99 else ('warn' if item.uptime >= 90 else 'bad') }}" style="width: {{ item.uptime }}%"></div>
                             </div>
-                            {{ item.uptime }}% uptime
+                            {{ item.uptime }}% {{ t.uptime }}
                         </span>
                         {% if item.last_check %}
                         <span>{{ item.last_check.response_ms }}ms</span>
-                        <span>{{ item.total_checks }} checks</span>
+                        <span>{{ item.total_checks }} {{ t.checks }}</span>
                         {% if item.last_check.ssl_valid is not none %}
                         <span class="ssl-badge {{ 'ssl-valid' if item.last_check.ssl_days_left and item.last_check.ssl_days_left > 30 else ('ssl-expiring' if item.last_check.ssl_days_left and item.last_check.ssl_days_left > 0 else 'ssl-expired') }}">
                             SSL {{ item.last_check.ssl_days_left }}d
                         </span>
                         {% endif %}
                         {% else %}
-                        <span style="color:#facc15">Pending first check...</span>
+                        <span style="color:#facc15">{{ t.pending_first_check }}</span>
                         {% endif %}
                     </div>
                 </div>
 
                 <div class="site-actions">
-                    <a href="/site/{{ item.site.id }}" class="btn btn-sm btn-outline">Details</a>
+                    <a href="/site/{{ item.site.id }}" class="btn btn-sm btn-outline">{{ t.details }}</a>
                     <form method="POST" action="/sites/{{ item.site.id }}/check" style="display:inline">
 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                        <button class="btn btn-sm btn-success">Check Now</button>
+                        <button class="btn btn-sm btn-success">{{ t.check_now }}</button>
                     </form>
                     <form method="POST" action="/sites/{{ item.site.id }}/toggle" style="display:inline">
 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                        <button class="btn btn-sm btn-outline">{{ 'Disable' if item.site.enabled else 'Enable' }}</button>
+                        <button class="btn btn-sm btn-outline">{{ t.disable if item.site.enabled else t.enable }}</button>
                     </form>
-                    <form method="POST" action="/sites/{{ item.site.id }}/delete" style="display:inline" onsubmit="return confirm('Delete this site?')">
+                    <form method="POST" action="/sites/{{ item.site.id }}/delete" style="display:inline" onsubmit="return confirm('{{ t.delete_site_confirm }}')">
 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                        <button class="btn btn-sm btn-danger">Delete</button>
+                        <button class="btn btn-sm btn-danger">{{ t.delete }}</button>
                     </form>
                 </div>
             </div>
@@ -269,22 +269,22 @@
         </div>
         {% else %}
         <div class="empty">
-            <h3>No websites monitored yet</h3>
-            <p>Add a website above to start monitoring.</p>
+            <h3>{{ t.no_sites }}</h3>
+            <p>{{ t.no_sites_desc }}</p>
         </div>
         {% endif %}
     </div>
 
     <div id="bulkModal" class="modal">
         <div class="modal-box">
-            <h2>Bulk Import Sites</h2>
+            <h2>{{ t.bulk_import_title }}</h2>
             <form method="POST" action="/sites/bulk-import">
 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                <div class="help">Format: name,url,check_ssl (one per line)<br>Example:<br>Google,https://google.com,true<br>GitHub,https://github.com,false</div>
+                <div class="help">{{ t.bulk_import_help }}<br>{{ t.bulk_import_example }}<br>Google,https://google.com,true<br>GitHub,https://github.com,false</div>
                 <textarea name="import_data" placeholder="Google,https://google.com,true&#10;GitHub,https://github.com,false&#10;Example,https://example.com,false" required></textarea>
                 <div class="modal-actions">
-                    <button type="button" onclick="document.getElementById('bulkModal').classList.remove('active')" class="btn btn-outline">Cancel</button>
-                    <button type="submit" class="btn">Import</button>
+                    <button type="button" onclick="document.getElementById('bulkModal').classList.remove('active')" class="btn btn-outline">{{ t.cancel }}</button>
+                    <button type="submit" class="btn">{{ t.import }}</button>
                 </div>
             </form>
         </div>

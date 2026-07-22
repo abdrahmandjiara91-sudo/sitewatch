@@ -52,75 +52,75 @@
     <div class="header">
         <h1>&#9202; SiteWatch</h1>
         <div class="header-nav">
-            <a href="/dashboard">Dashboard</a>
-            <a href="/settings">Settings</a>
-            <form method="POST" action="/logout" style="display:inline"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button type="submit" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:0.85rem;padding:0;">Logout</button></form>
+            <a href="/dashboard">{{ t.dashboard }}</a>
+            <a href="/settings">{{ t.settings }}</a>
+            <form method="POST" action="/logout" style="display:inline"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button type="submit" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:0.85rem;padding:0;">{{ t.logout }}</button></form>
         </div>
     </div>
 
     <div class="container">
         <div class="section">
-            <h2>Generate New API Key</h2>
+            <h2>{{ t.generate_new_key }}</h2>
             {% if new_key %}
             <div style="background:#064e3b; border:1px solid #10b981; border-radius:8px; padding:1rem; margin-bottom:1rem;">
-                <strong style="color:#4ade80;">&#9888; Copy this key now — it won't be shown again:</strong>
+                <strong style="color:#4ade80;">&#9888; {{ t.copy_key_now }}</strong>
                 <div class="key-value" style="color:#e2e8f0; margin-top:0.5rem;">{{ new_key }}</div>
             </div>
             {% endif %}
             <form method="POST" action="/api-keys/generate">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <div class="form-row">
-                    <input name="name" placeholder="Key name (e.g. My App, Backend Server)" required>
-                    <button type="submit" class="btn">Generate Key</button>
+                    <input name="name" placeholder="{{ t.key_name_placeholder }}" required>
+                    <button type="submit" class="btn">{{ t.generate_key }}</button>
                 </div>
             </form>
         </div>
 
         <div class="section">
-            <h2>Your API Keys</h2>
+            <h2>{{ t.your_api_keys }}</h2>
             {% if keys %}
                 {% for key in keys %}
                 <div class="key-card {{ 'inactive' if not key.is_active }}">
                     <div class="key-header">
                         <span class="key-name">{{ key.name }}</span>
                         <div class="key-actions">
-                            <span class="{{ 'status-active' if key.is_active else 'status-inactive' }}">{{ 'Active' if key.is_active else 'Inactive' }}</span>
+                            <span class="{{ 'status-active' if key.is_active else 'status-inactive' }}">{{ t.active if key.is_active else t.inactive }}</span>
                             <form method="POST" action="/api-keys/{{ key.id }}/toggle" style="display:inline">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                                <button class="btn btn-sm btn-outline">{{ 'Disable' if key.is_active else 'Enable' }}</button>
+                                <button class="btn btn-sm btn-outline">{{ t.disable_key if key.is_active else t.enable_key }}</button>
                             </form>
-                            <form method="POST" action="/api-keys/{{ key.id }}/delete" style="display:inline" onsubmit="return confirm('Delete this key?')">
+                            <form method="POST" action="/api-keys/{{ key.id }}/delete" style="display:inline" onsubmit="return confirm('{{ t.confirm_delete_key }}')">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                                <button class="btn btn-sm btn-danger">Delete</button>
+                                <button class="btn btn-sm btn-danger">{{ t.delete }}</button>
                             </form>
                         </div>
                     </div>
                     <div class="key-value">{{ key.key_prefix }}</div>
                     <div class="key-meta">
-                        <span>Created: {{ key.created_at.strftime('%Y-%m-%d') if key.created_at else 'N/A' }}</span>
+                        <span>{{ t.created }}: {{ key.created_at.strftime('%Y-%m-%d') if key.created_at else 'N/A' }}</span>
                         {% if key.last_used_at %}
-                        <span>Last used: {{ key.last_used_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                        <span>{{ t.last_used }}: {{ key.last_used_at.strftime('%Y-%m-%d %H:%M') }}</span>
                         {% else %}
-                        <span>Never used</span>
+                        <span>{{ t.never_used }}</span>
                         {% endif %}
                     </div>
                 </div>
                 {% endfor %}
             {% else %}
-                <div class="empty">No API keys yet. Generate one above.</div>
+                <div class="empty">{{ t.no_api_keys_generate }}</div>
             {% endif %}
         </div>
 
         <div class="section">
-            <h2>API Documentation</h2>
+            <h2>{{ t.api_documentation }}</h2>
             <div class="docs">
-                <p><strong>Base URL:</strong> <code>https://your-domain/v1/</code></p>
+                <p><strong>{{ t.base_url }}</strong> <code>https://your-domain/v1/</code></p>
 
-                <h3 style="margin-top:1rem; color:#38bdf8;">Get All Sites</h3>
-                <p>Returns all your monitored sites and their status.</p>
+                <h3 style="margin-top:1rem; color:#38bdf8;">{{ t.get_all_sites }}</h3>
+                <p>{{ t.get_all_sites_desc }}</p>
                 <pre>GET /v1/status
 Authorization: Bearer sk_your_api_key_here</pre>
-                <p><strong>Response:</strong></p>
+                <p><strong>{{ t.response }}</strong></p>
                 <pre>{
   "user": "your_username",
   "plan": "free",
@@ -137,11 +137,11 @@ Authorization: Bearer sk_your_api_key_here</pre>
   ]
 }</pre>
 
-                <h3 style="margin-top:1rem; color:#38bdf8;">Check a Specific Site</h3>
-                <p>Triggers an immediate check and returns the result.</p>
+                <h3 style="margin-top:1rem; color:#38bdf8;">{{ t.check_specific_site }}</h3>
+                <p>{{ t.check_specific_site_desc }}</p>
                 <pre>GET /v1/check/https://google.com
 Authorization: Bearer sk_your_api_key_here</pre>
-                <p><strong>Response:</strong></p>
+                <p><strong>{{ t.response }}</strong></p>
                 <pre>{
   "site": "Google",
   "url": "https://google.com",
@@ -153,10 +153,10 @@ Authorization: Bearer sk_your_api_key_here</pre>
   "error": null
 }</pre>
 
-                <h3 style="margin-top:1rem; color:#38bdf8;">Rate Limits</h3>
+                <h3 style="margin-top:1rem; color:#38bdf8;">{{ t.rate_limits }}</h3>
                 <ul style="padding-left:1.5rem;">
-                    <li><code>/v1/status</code> - 60 requests per minute</li>
-                    <li><code>/v1/check/*</code> - 30 requests per minute</li>
+                    <li><code>/v1/status</code> - 60 {{ t.requests_per_minute }}</li>
+                    <li><code>/v1/check/*</code> - 30 {{ t.requests_per_minute }}</li>
                 </ul>
             </div>
         </div>

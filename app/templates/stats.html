@@ -39,50 +39,50 @@
         <a href="/dashboard" class="nav-brand">SiteWatch</a>
         <div class="nav-links">
             <a href="/dashboard">Dashboard</a>
-            <a href="/stats" class="active">Statistics</a>
-            <a href="/settings">Settings</a>
-            <form method="POST" action="/logout" style="display:inline"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button type="submit" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:0.85rem;padding:0;">Logout</button></form>
+            <a href="/stats" class="active">{{ t.statistics }}</a>
+            <a href="/settings">{{ t.settings }}</a>
+            <form method="POST" action="/logout" style="display:inline"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button type="submit" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:0.85rem;padding:0;">{{ t.logout }}</button></form>
         </div>
     </nav>
     <div class="container">
-        <a href="/dashboard" class="back-link">&larr; Back to Dashboard</a>
-        <h1>Statistics Overview</h1>
+        <a href="/dashboard" class="back-link">&larr; {{ t.back_to_dashboard }}</a>
+        <h1>{{ t.statistics_overview }}</h1>
 
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-value">{{ total_sites }}</div>
-                <div class="stat-label">Total Sites</div>
+                <div class="stat-label">{{ t.total_sites }}</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value stat-green">{{ up_count }}</div>
-                <div class="stat-label">Sites Online</div>
+                <div class="stat-label">{{ t.sites_online }}</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value stat-red">{{ down_count }}</div>
-                <div class="stat-label">Sites Down</div>
+                <div class="stat-label">{{ t.sites_down }}</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value">{{ total_checks }}</div>
-                <div class="stat-label">Total Checks</div>
+                <div class="stat-label">{{ t.total_checks }}</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value stat-yellow">{{ avg_response }}ms</div>
-                <div class="stat-label">Avg Response</div>
+                <div class="stat-label">{{ t.avg_response }}</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value" style="font-size:1.5rem;">{{ overall_uptime }}%</div>
-                <div class="stat-label">Overall Uptime</div>
+                <div class="stat-label">{{ t.overall_uptime }}</div>
             </div>
         </div>
 
-        <h2 style="margin-bottom: 1rem; font-size: 1.25rem;">Per-Site Breakdown</h2>
+        <h2 style="margin-bottom: 1rem; font-size: 1.25rem;">{{ t.per_site_breakdown }}</h2>
         <table>
             <thead>
                 <tr>
-                    <th>Site</th>
-                    <th>Uptime</th>
-                    <th>Avg Response</th>
-                    <th>Last Check</th>
+                    <th>{{ t.site_col }}</th>
+                    <th>{{ t.uptime_col }}</th>
+                    <th>{{ t.avg_response_col }}</th>
+                    <th>{{ t.last_check_col }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -100,7 +100,7 @@
                 </tr>
                 {% endfor %}
                 {% if not site_stats %}
-                <tr><td colspan="4" style="text-align:center; color:#64748b; padding: 2rem;">No sites to show statistics for.</td></tr>
+                <tr><td colspan="4" style="text-align:center; color:#64748b; padding: 2rem;">{{ t.no_stats }}</td></tr>
                 {% endif %}
             </tbody>
         </table>

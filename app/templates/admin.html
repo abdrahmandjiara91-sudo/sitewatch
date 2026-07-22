@@ -75,18 +75,18 @@
 </head>
 <body>
     <div class="header">
-        <h1>&#9881; Admin Panel</h1>
+        <h1>&#9881; {{ t.admin_panel }}</h1>
         <div>
-            <a href="/dashboard">Dashboard</a> &nbsp;|&nbsp;
-            <form method="POST" action="/logout" style="display:inline"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button type="submit" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:0.85rem;padding:0;">Logout</button></form>
+            <a href="/dashboard">{{ t.dashboard }}</a> &nbsp;|&nbsp;
+            <form method="POST" action="/logout" style="display:inline"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button type="submit" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:0.85rem;padding:0;">{{ t.logout }}</button></form>
         </div>
     </div>
 
     <div class="container">
         <div class="revenue-banner">
             <div class="revenue-text">
-                <h3>Estimated Monthly Revenue</h3>
-                <div class="revenue-val">${{ total_revenue }}<span>/month</span></div>
+                <h3>{{ t.estimated_revenue }}</h3>
+                <div class="revenue-val">${{ total_revenue }}<span>{{ t.month }}</span></div>
             </div>
             <div style="text-align:right; color:#94a3b8; font-size:0.85rem;">
                 <div>{{ pro_users }} Pro x $9 = ${{ pro_users * 9 }}</div>
@@ -97,53 +97,53 @@
         <div class="stats-row">
             <div class="stat-card">
                 <div class="val purple">{{ total_users }}</div>
-                <div class="label">Total Users</div>
+                <div class="label">{{ t.total_users }}</div>
             </div>
             <div class="stat-card">
                 <div class="val blue">{{ total_sites }}</div>
-                <div class="label">Total Sites</div>
+                <div class="label">{{ t.total_sites }}</div>
             </div>
             <div class="stat-card">
                 <div class="val green">{{ total_checks }}</div>
-                <div class="label">Total Checks</div>
+                <div class="label">{{ t.total_checks }}</div>
             </div>
             <div class="stat-card">
                 <div class="val yellow">{{ total_revenue }}</div>
-                <div class="label">Revenue ($)</div>
+                <div class="label">{{ t.revenue }} ($)</div>
             </div>
         </div>
 
         <div class="plans-bar">
             <div class="plan-stat free">
-                <div class="plan-name">Free Users</div>
+                <div class="plan-name">{{ t.free_users }}</div>
                 <div class="plan-count" style="color:#94a3b8">{{ free_users }}</div>
             </div>
             <div class="plan-stat pro">
-                <div class="plan-name">Pro Users ($9/mo)</div>
+                <div class="plan-name">{{ t.pro_users }}</div>
                 <div class="plan-count" style="color:#60a5fa">{{ pro_users }}</div>
             </div>
             <div class="plan-stat enterprise">
-                <div class="plan-name">Enterprise Users ($29/mo)</div>
+                <div class="plan-name">{{ t.enterprise_users }}</div>
                 <div class="plan-count" style="color:#c084fc">{{ ent_users }}</div>
             </div>
         </div>
 
         <div class="table-wrapper">
             <div class="table-header">
-                <h2>All Users ({{ total_users }})</h2>
+                <h2>{{ t.all_users }} ({{ total_users }})</h2>
             </div>
             {% if all_users %}
             <table>
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Username</th>
-                        <th>Email</th>
-                        <th>Plan</th>
-                        <th>Sites</th>
-                        <th>Checks</th>
-                        <th>Joined</th>
-                        <th>Actions</th>
+                        <th>{{ t.id_col }}</th>
+                        <th>{{ t.username_col }}</th>
+                        <th>{{ t.email_col }}</th>
+                        <th>{{ t.plan_col }}</th>
+                        <th>{{ t.sites_col }}</th>
+                        <th>{{ t.checks_col }}</th>
+                        <th>{{ t.joined_col }}</th>
+                        <th>{{ t.actions }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -171,9 +171,9 @@
                         <td>{{ u.created_at.strftime('%Y-%m-%d') if u.created_at else '-' }}</td>
                         <td>
                             {% if not u.is_admin %}
-                            <form method="POST" action="/admin/user/{{ u.id }}/delete" style="display:inline" onsubmit="return confirm('Delete this user and all their data?')">
+                            <form method="POST" action="/admin/user/{{ u.id }}/delete" style="display:inline" onsubmit="return confirm('{{ t.delete_user_confirm }}')">
 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                                <button class="btn btn-danger btn-sm">Delete</button>
+                                <button class="btn btn-danger btn-sm">{{ t.delete }}</button>
                             </form>
                             {% endif %}
                         </td>
@@ -183,7 +183,7 @@
             </table>
             {% else %}
             <div class="empty">
-                <p>No users registered yet.</p>
+                <p>{{ t.no_users }}</p>
             </div>
             {% endif %}
         </div>
