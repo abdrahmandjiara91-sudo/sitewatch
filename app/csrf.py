@@ -68,14 +68,14 @@ def set_csrf_cookie_if_new(response, session_id: str, is_new: bool) -> None:
         )
 
 
-async def verify_csrf(request: Request, csrf_token: str = Form(...)):
+async def verify_csrf(request: Request, csrf_token: str = Form(default="")):
     """
     FastAPI dependency for POST routes. Add `_: bool = Depends(verify_csrf)`
     to any route that must be protected. Requires the form to include a
     `csrf_token` hidden field.
     """
     session_id = request.cookies.get(CSRF_COOKIE_NAME)
-    if not session_id or not _verify_csrf_value(csrf_token, session_id):
+    if not session_id or not csrf_token or not _verify_csrf_value(csrf_token, session_id):
         raise HTTPException(
             status_code=403,
             detail="Invalid or expired security token. Please refresh the page and try again.",

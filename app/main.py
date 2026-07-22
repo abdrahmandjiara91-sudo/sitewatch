@@ -17,6 +17,7 @@ import hashlib
 import hmac
 import asyncio
 import datetime
+import time
 
 from app.database import init_db, async_session, engine, DATABASE_URL
 from app.models import User, Site, Check, PLANS, ApiKey, VerificationToken, PasswordResetToken, RevokedToken, Review, BlogPost
@@ -110,6 +111,9 @@ app.state.limiter = limiter
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
+_login_attempts = {}
+_BRUTE_FORCE_WINDOW = 60
+_BRUTE_FORCE_MAX = 10
 
 @app.middleware("http")
 async def security_headers(request: Request, call_next):
@@ -122,6 +126,20 @@ async def security_headers(request: Request, call_next):
     response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self'"
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
     return response
+
+
+@app.middleware("http")
+async def brute_force_protection(request: Request, call_next):
+    ip = _get_client_ip(request)
+    now = time.time()
+    if request.url.path in ("/login", "/forgot-password") and request.method == "POST":
+        if ip not in _login_attempts:
+            _login_attempts[ip] = []
+        _login_attempts[ip] = [t for t in _login_attempts[ip] if now - t < _BRUTE_FORCE_WINDOW]
+        if len(_login_attempts[ip]) >= _BRUTE_FORCE_MAX:
+            return JSONResponse(status_code=429, content={"detail": "Too many attempts. Try again later."})
+        _login_attempts[ip].append(now)
+    return await call_next(request)
 
 
 @app.get("/health")
