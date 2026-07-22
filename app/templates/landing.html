@@ -78,6 +78,22 @@
 
         .footer { text-align: center; padding: 2rem; border-top: 1px solid #334155; color: #64748b; font-size: 0.85rem; }
 
+        .reviews-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+        .review-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 1.5rem; }
+        .review-stars { color: #fbbf24; font-size: 1.2rem; margin-bottom: 0.75rem; }
+        .review-text { color: #94a3b8; font-size: 0.95rem; font-style: italic; margin-bottom: 0.75rem; line-height: 1.6; }
+        .review-author { color: #64748b; font-size: 0.85rem; }
+        .review-form { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 2rem; margin-top: 2rem; max-width: 500px; margin-left: auto; margin-right: auto; }
+        .review-form h3 { margin-bottom: 1rem; font-size: 1.1rem; }
+        .review-form textarea { width: 100%; background: #0f172a; border: 1px solid #475569; color: #e2e8f0; padding: 0.6rem 0.8rem; border-radius: 8px; font-size: 0.9rem; resize: vertical; min-height: 80px; outline: none; font-family: inherit; margin-bottom: 0.75rem; }
+        .review-form input[type="text"] { width: 100%; background: #0f172a; border: 1px solid #475569; color: #e2e8f0; padding: 0.6rem 0.8rem; border-radius: 8px; font-size: 0.9rem; outline: none; margin-bottom: 0.75rem; }
+        .star-select { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; }
+        .star-select label { cursor: pointer; font-size: 1.5rem; color: #475569; transition: color 0.2s; }
+        .star-select label:hover, .star-select label:hover ~ label, .star-select input:checked ~ label { color: #fbbf24; }
+        .star-select { direction: rtl; display: flex; gap: 0.25rem; }
+        .star-select input { display: none; }
+        .star-select input:checked + label, .star-select label:hover, .star-select label:hover ~ label { color: #fbbf24; }
+
         .compare-table { width: 100%; border-collapse: collapse; margin: 2rem 0; }
         .compare-table th, .compare-table td { padding: 1rem; text-align: center; border-bottom: 1px solid #334155; }
         .compare-table th { background: #1e293b; color: #94a3b8; font-size: 0.85rem; text-transform: uppercase; }
@@ -340,6 +356,55 @@
                 <div class="testimonial-author">Carlos R.</div>
                 <div class="testimonial-role">Digital Agency</div>
             </div>
+        </div>
+    </section>
+
+    <section class="section" id="reviews">
+        <div class="section-title">
+            <h2>What Our Users Say</h2>
+            <p>Trusted by website owners worldwide</p>
+        </div>
+        <div class="reviews-grid" id="reviewsGrid">
+            {% for review in reviews %}
+            <div class="review-card">
+                <div class="review-stars">{{ '&#9733;' * review.rating }}{{ '&#9734;' * (5 - review.rating) }}</div>
+                <div class="review-text">"{{ review.comment }}"</div>
+                <div class="review-author">— {{ review.author_name }}</div>
+            </div>
+            {% endfor %}
+            {% if not reviews %}
+            <div class="review-card">
+                <div class="review-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+                <div class="review-text">"SiteWatch saved us from losing customers. We detected a critical outage in 2 minutes and fixed it before anyone noticed."</div>
+                <div class="review-author">— Happy User</div>
+            </div>
+            <div class="review-card">
+                <div class="review-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+                <div class="review-text">"Simple, fast, and reliable. The Telegram alerts are instant. Best free monitoring tool I've found."</div>
+                <div class="review-author">— DevOps Engineer</div>
+            </div>
+            <div class="review-card">
+                <div class="review-stars">&#9733;&#9733;&#9733;&#9733;&#9734;</div>
+                <div class="review-text">"Love the clean dashboard and public status page. It looks professional without any effort."</div>
+                <div class="review-author">— Indie Developer</div>
+            </div>
+            {% endif %}
+        </div>
+        <div class="review-form">
+            <h3>Leave a Review</h3>
+            <form method="POST" action="/reviews/submit" id="reviewForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="text" name="author_name" placeholder="Your name (optional)">
+                <div class="star-select">
+                    <input type="radio" id="star5" name="rating" value="5"><label for="star5">&#9733;</label>
+                    <input type="radio" id="star4" name="rating" value="4"><label for="star4">&#9733;</label>
+                    <input type="radio" id="star3" name="rating" value="3" checked><label for="star3">&#9733;</label>
+                    <input type="radio" id="star2" name="rating" value="2"><label for="star2">&#9733;</label>
+                    <input type="radio" id="star1" name="rating" value="1"><label for="star1">&#9733;</label>
+                </div>
+                <textarea name="text" placeholder="Your review..." rows="3" required></textarea>
+                <button type="submit" class="btn">Submit Review</button>
+            </form>
         </div>
     </section>
 

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ 'Edit' if post else 'New' }} Post - SiteWatch</title>
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root, [data-theme="dark"] { --bg: #0f172a; --card: #1e293b; --border: #334155; --text: #e2e8f0; --heading: #f1f5f9; --muted: #94a3b8; --dim: #64748b; --accent: #3b82f6; --accent2: #38bdf8; --input-bg: #0f172a; --input-border: #475569; }
+        [data-theme="light"] { --bg: #f8fafc; --card: #ffffff; --border: #e2e8f0; --text: #0f172a; --heading: #0f172a; --muted: #475569; --dim: #94a3b8; --accent: #2563eb; --accent2: #0284c7; --input-bg: #ffffff; --input-border: #d1d5db; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; transition: background 0.3s, color 0.3s; }
+        .nav { background: var(--card); border-bottom: 1px solid var(--border); padding: 0.8rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .nav-brand { color: var(--accent2); font-size: 1.3rem; font-weight: 700; text-decoration: none; }
+        .nav a { color: var(--muted); text-decoration: none; font-size: 0.85rem; }
+        .container { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+        h1 { font-size: 1.5rem; margin-bottom: 1.5rem; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 0.3rem; }
+        .form-group input, .form-group textarea { width: 100%; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text); padding: 0.6rem 0.8rem; border-radius: 8px; font-size: 0.9rem; outline: none; font-family: inherit; }
+        .form-group textarea { min-height: 400px; resize: vertical; }
+        .form-group input:focus, .form-group textarea:focus { border-color: var(--accent); }
+        .form-actions { display: flex; gap: 0.75rem; margin-top: 1.5rem; }
+        .btn { background: var(--accent); color: #fff; border: none; padding: 0.7rem 1.5rem; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; text-decoration: none; }
+        .btn:hover { filter: brightness(1.15); }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+        .btn-danger { background: #dc2626; }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="/" class="nav-brand">&#9202; SiteWatch</a>
+        <div><a href="/dashboard">Dashboard</a> &nbsp;|&nbsp; <a href="/blog">Blog</a></div>
+    </nav>
+    <div class="container">
+        <h1>{{ 'Edit Post' if post else 'New Post' }}</h1>
+        <form method="POST" action="{{ '/blog/' + post.slug + '/edit' if post else '/admin/blog/create' }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <div class="form-group">
+                <label>Title</label>
+                <input name="title" value="{{ post.title if post else '' }}" required>
+            </div>
+            {% if not post %}
+            <div class="form-group">
+                <label>Slug (URL-friendly)</label>
+                <input name="slug" required placeholder="my-blog-post">
+            </div>
+            {% endif %}
+            <div class="form-group">
+                <label>Excerpt</label>
+                <input name="excerpt" value="{{ post.excerpt if post else '' }}" required placeholder="Short summary for the blog list page">
+            </div>
+            <div class="form-group">
+                <label>Content (HTML supported)</label>
+                <textarea name="content" required>{{ post.content if post else '' }}</textarea>
+            </div>
+            {% if post %}
+            <div class="form-group">
+                <label><input type="checkbox" name="is_published" value="true" {{ 'checked' if post.is_published else '' }}> Published</label>
+            </div>
+            {% endif %}
+            <div class="form-actions">
+                <button type="submit" class="btn">{{ 'Update' if post else 'Create' }} Post</button>
+                <a href="/blog" class="btn btn-outline">Cancel</a>
+                {% if post %}
+                <form method="POST" action="/blog/{{ post.slug }}/delete" style="display:inline" onsubmit="return confirm('Delete this post?')">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <button class="btn btn-danger">Delete</button>
+                </form>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</body>
+</html>

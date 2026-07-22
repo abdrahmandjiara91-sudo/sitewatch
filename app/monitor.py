@@ -117,18 +117,26 @@ async def check_site(site: Site, db: AsyncSession) -> Check:
     db.add(check)
     await db.commit()
 
-    if was_up_before is not None and was_up_before != is_up:
-        try:
-            from app.notify import notify_down, notify_up
-            user_q = select(User).where(User.id == site.user_id)
-            user = (await db.execute(user_q)).scalar_one_or_none()
-            if user:
+    user_q = select(User).where(User.id == site.user_id)
+    user = (await db.execute(user_q)).scalar_one_or_none()
+
+    if user:
+        if was_up_before is not None and was_up_before != is_up:
+            try:
+                from app.notify import notify_down, notify_up
                 if is_up:
                     await notify_up(user, site)
                 else:
                     await notify_down(user, site, last)
-        except Exception:
-            pass
+            except Exception:
+                pass
+
+        if response_ms and user.notify_slow and response_ms >= user.slow_threshold_ms and is_up:
+            try:
+                from app.notify import notify_slow
+                await notify_slow(user, site, response_ms)
+            except Exception:
+                pass
 
     return check
 

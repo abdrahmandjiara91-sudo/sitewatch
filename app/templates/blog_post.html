@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ post.title }} - SiteWatch Blog</title>
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root, [data-theme="dark"] { --bg: #0f172a; --card: #1e293b; --border: #334155; --text: #e2e8f0; --heading: #f1f5f9; --muted: #94a3b8; --dim: #64748b; --accent: #3b82f6; --accent2: #38bdf8; }
+        [data-theme="light"] { --bg: #f8fafc; --card: #ffffff; --border: #e2e8f0; --text: #0f172a; --heading: #0f172a; --muted: #475569; --dim: #94a3b8; --accent: #2563eb; --accent2: #0284c7; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; transition: background 0.3s, color 0.3s; }
+        .nav { background: var(--card); border-bottom: 1px solid var(--border); padding: 0.8rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .nav-brand { color: var(--accent2); font-size: 1.3rem; font-weight: 700; text-decoration: none; }
+        .nav a { color: var(--muted); text-decoration: none; font-size: 0.85rem; }
+        .nav a:hover { color: var(--text); }
+        .container { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+        .back { color: var(--accent); text-decoration: none; font-size: 0.9rem; display: inline-block; margin-bottom: 1.5rem; }
+        .back:hover { text-decoration: underline; }
+        h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .meta { color: var(--dim); font-size: 0.85rem; margin-bottom: 2rem; }
+        .content { line-height: 1.8; color: var(--muted); font-size: 1rem; }
+        .content h2 { color: var(--heading); font-size: 1.4rem; margin: 2rem 0 0.75rem; }
+        .content h3 { color: var(--heading); font-size: 1.2rem; margin: 1.5rem 0 0.5rem; }
+        .content p { margin-bottom: 1rem; }
+        .content ul, .content ol { margin: 1rem 0; padding-left: 1.5rem; }
+        .content li { margin-bottom: 0.5rem; }
+        .content code { background: var(--card); border: 1px solid var(--border); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.9rem; color: var(--accent2); }
+        .content pre { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; overflow-x: auto; margin: 1rem 0; }
+        .content pre code { background: none; border: none; padding: 0; }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="/" class="nav-brand">&#9202; SiteWatch</a>
+        <div>
+            {% if user %}
+            <a href="/dashboard">Dashboard</a> &nbsp;|&nbsp;
+            {% else %}
+            <a href="/login">Login</a> &nbsp;|&nbsp;
+            {% endif %}
+            <a href="/blog">Blog</a>
+        </div>
+    </nav>
+    <div class="container">
+        <a href="/blog" class="back">&larr; Back to Blog</a>
+        <h1>{{ post.title }}</h1>
+        <div class="meta">{{ post.created_at.strftime('%B %d, %Y') if post.created_at else '' }}</div>
+        <div class="content">{{ post.content | safe }}</div>
+    </div>
+</body>
+</html>

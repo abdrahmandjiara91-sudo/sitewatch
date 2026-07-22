@@ -19,7 +19,7 @@ import asyncio
 import datetime
 
 from app.database import init_db, async_session, engine, DATABASE_URL
-from app.models import User, Site, Check, PLANS, ApiKey, VerificationToken, PasswordResetToken, RevokedToken
+from app.models import User, Site, Check, PLANS, ApiKey, VerificationToken, PasswordResetToken, RevokedToken, Review, BlogPost
 from app.auth import hash_password, verify_password, create_token, get_current_user, require_auth
 from app.monitor import run_checks, check_site, _is_private_host
 from app.csrf import get_or_create_csrf_session_id, set_csrf_cookie_if_new, generate_csrf_token, verify_csrf
@@ -53,12 +53,53 @@ async def _reset_daily_api_counters():
         await db.commit()
 
 
+async def _monthly_uptime_report():
+    try:
+        from app.notify import send_monthly_report
+        now = _utcnow()
+        month_str = now.strftime("%B %Y")
+        async with async_session() as db:
+            users = (await db.execute(select(User).where(User.notify_email == True, User.is_verified == True))).scalars().all()
+            for user in users:
+                sites = (await db.execute(select(Site).where(Site.user_id == user.id))).scalars().all()
+                site_stats = []
+                total_checks = 0
+                all_up_count = 0
+                total_response = 0.0
+                response_count = 0
+                for site in sites:
+                    site_total = (await db.execute(select(func.count(Check.id)).where(Check.site_id == site.id))).scalar() or 0
+                    site_up = (await db.execute(select(func.count(Check.id)).where(Check.site_id == site.id, Check.is_up == True))).scalar() or 0
+                    uptime = round((site_up / site_total * 100) if site_total > 0 else 0, 1)
+                    avg_resp_q = select(func.avg(Check.response_ms)).where(Check.site_id == site.id, Check.is_up == True)
+                    avg_resp = (await db.execute(avg_resp_q)).scalar()
+                    avg_resp = round(avg_resp, 1) if avg_resp else 0
+                    total_checks += site_total
+                    all_up_count += site_up
+                    if avg_resp > 0:
+                        total_response += avg_resp
+                        response_count += 1
+                    site_stats.append({"name": site.name, "uptime": uptime, "avg_response": avg_resp, "total_checks": site_total})
+                overall_uptime = round(all_up_count / total_checks * 100, 1) if total_checks > 0 else 0
+                stats = {
+                    "month": month_str,
+                    "total_sites": len(sites),
+                    "overall_uptime": overall_uptime,
+                    "total_checks": total_checks,
+                    "sites": site_stats,
+                }
+                await send_monthly_report(user, stats)
+    except Exception:
+        pass
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
     scheduler.add_job(run_checks, "interval", seconds=60, id="monitor")
     scheduler.add_job(_cleanup_revoked_tokens, "interval", days=1, id="cleanup_tokens")
     scheduler.add_job(_reset_daily_api_counters, "cron", hour=0, minute=0, id="reset_api_counters")
+    scheduler.add_job(_monthly_uptime_report, "cron", day=1, hour=8, minute=0, id="monthly_report")
     scheduler.start()
     yield
     scheduler.shutdown()
@@ -301,7 +342,11 @@ async def landing_page(request: Request):
     user = await get_current_user(request)
     lang = request.cookies.get("lang", "en")
     t = get_translations(lang)
-    return templates.TemplateResponse(request, "landing.html", {"user": user, "t": t})
+    async with async_session() as db:
+        reviews = (await db.execute(
+            select(Review).where(Review.is_approved == True).order_by(Review.created_at.desc()).limit(6)
+        )).scalars().all()
+    return render(request, "landing.html", {"user": user, "t": t, "reviews": reviews})
 
 
 SAFE_ERRORS = {
@@ -758,6 +803,8 @@ async def update_settings(
     discord_webhook_url: str = Form(""),
     custom_webhooks: str = Form(""),
     audio_alert: bool = Form(False),
+    notify_slow: bool = Form(False),
+    slow_threshold_ms: int = Form(3000),
     user: User = Depends(require_auth),
     _: bool = Depends(verify_csrf),
 ):
@@ -772,6 +819,8 @@ async def update_settings(
         u.notify_discord = notify_discord
         u.discord_webhook_url = discord_webhook_url if discord_webhook_url else None
         u.custom_webhooks = custom_webhooks if custom_webhooks.strip() else None
+        u.notify_slow = notify_slow
+        u.slow_threshold_ms = max(500, min(30000, slow_threshold_ms))
         await db.commit()
     return RedirectResponse("/settings?message=Settings+saved!", status_code=303)
 
@@ -859,6 +908,108 @@ async def export_site_checks(site_id: int, user: User = Depends(require_auth)):
         media_type="text/csv",
         headers={"Content-Disposition": f'attachment; filename="{safe_name}_report.csv"'},
     )
+
+
+@app.post("/sites/{site_id}/notifications")
+async def update_site_notifications(
+    request: Request,
+    site_id: int,
+    notify_slack: bool = Form(False),
+    slack_webhook_url: str = Form(""),
+    notify_discord: bool = Form(False),
+    discord_webhook_url: str = Form(""),
+    custom_webhooks: str = Form(""),
+    user: User = Depends(require_auth),
+    _: bool = Depends(verify_csrf),
+):
+    async with async_session() as db:
+        site = await db.get(Site, site_id)
+        if site and site.user_id == user.id:
+            site.notify_slack = notify_slack
+            site.slack_webhook_url = slack_webhook_url if slack_webhook_url else None
+            site.notify_discord = notify_discord
+            site.discord_webhook_url = discord_webhook_url if discord_webhook_url else None
+            site.custom_webhooks = custom_webhooks if custom_webhooks.strip() else None
+            await db.commit()
+    return RedirectResponse(f"/site/{site_id}", status_code=303)
+
+
+@app.post("/admin/blog/create")
+async def create_blog_post(
+    request: Request,
+    title: str = Form(...),
+    slug: str = Form(...),
+    excerpt: str = Form(...),
+    content: str = Form(...),
+    user: User = Depends(require_auth),
+    _: bool = Depends(verify_csrf),
+):
+    if not user.is_admin:
+        return RedirectResponse("/dashboard", status_code=303)
+    slug = re.sub(r'[^a-z0-9\-]', '', slug.lower().replace(' ', '-'))[:300]
+    async with async_session() as db:
+        post = BlogPost(title=title.strip()[:300], slug=slug, excerpt=excerpt.strip()[:500], content=content)
+        db.add(post)
+        await db.commit()
+    return RedirectResponse("/blog", status_code=303)
+
+
+@app.get("/blog/{slug}/edit", response_class=HTMLResponse)
+async def edit_blog_page(request: Request, slug: str, user: User = Depends(require_auth)):
+    if not user.is_admin:
+        return RedirectResponse("/dashboard", status_code=303)
+    async with async_session() as db:
+        post = (await db.execute(select(BlogPost).where(BlogPost.slug == slug))).scalar_one_or_none()
+    if not post:
+        return RedirectResponse("/blog", status_code=303)
+    lang = request.cookies.get("lang", "en")
+    t = get_translations(lang)
+    return render(request, "blog_edit.html", {"user": user, "post": post, "t": t})
+
+
+@app.post("/blog/{slug}/edit")
+async def update_blog_post(
+    request: Request,
+    slug: str,
+    title: str = Form(...),
+    content: str = Form(...),
+    excerpt: str = Form(...),
+    is_published: bool = Form(True),
+    user: User = Depends(require_auth),
+    _: bool = Depends(verify_csrf),
+):
+    if not user.is_admin:
+        return RedirectResponse("/dashboard", status_code=303)
+    async with async_session() as db:
+        post = (await db.execute(select(BlogPost).where(BlogPost.slug == slug))).scalar_one_or_none()
+        if post:
+            post.title = title.strip()[:300]
+            post.content = content
+            post.excerpt = excerpt.strip()[:500]
+            post.is_published = is_published
+            await db.commit()
+    return RedirectResponse(f"/blog/{slug}", status_code=303)
+
+
+@app.post("/blog/{slug}/delete")
+async def delete_blog_post(slug: str, user: User = Depends(require_auth), _: bool = Depends(verify_csrf)):
+    if not user.is_admin:
+        return RedirectResponse("/dashboard", status_code=303)
+    async with async_session() as db:
+        post = (await db.execute(select(BlogPost).where(BlogPost.slug == slug))).scalar_one_or_none()
+        if post:
+            await db.delete(post)
+            await db.commit()
+    return RedirectResponse("/blog", status_code=303)
+
+
+@app.get("/blog/new", response_class=HTMLResponse)
+async def new_blog_page(request: Request, user: User = Depends(require_auth)):
+    if not user.is_admin:
+        return RedirectResponse("/dashboard", status_code=303)
+    lang = request.cookies.get("lang", "en")
+    t = get_translations(lang)
+    return render(request, "blog_edit.html", {"user": user, "post": None, "t": t})
 
 
 @app.get("/api/sites")
@@ -1411,3 +1562,64 @@ async def api_v1_check_site(request: Request, site_url: str, authorization: str 
         "error": check.error_message,
         "checked_at": check.checked_at.isoformat(),
     }
+
+
+@app.get("/blog", response_class=HTMLResponse)
+async def blog_list(request: Request):
+    user = await get_current_user(request)
+    async with async_session() as db:
+        posts = (await db.execute(
+            select(BlogPost).where(BlogPost.is_published == True).order_by(desc(BlogPost.created_at))
+        )).scalars().all()
+    return render(request, "blog.html", {"user": user, "posts": posts})
+
+
+@app.get("/blog/{slug}", response_class=HTMLResponse)
+async def blog_post(request: Request, slug: str):
+    user = await get_current_user(request)
+    async with async_session() as db:
+        post = (await db.execute(
+            select(BlogPost).where(BlogPost.slug == slug, BlogPost.is_published == True)
+        )).scalar_one_or_none()
+    if not post:
+        return RedirectResponse("/blog", status_code=302)
+    return render(request, "blog_post.html", {"user": user, "post": post})
+
+
+@app.post("/reviews/submit")
+@limiter.limit("5/minute")
+async def submit_review(
+    request: Request,
+    author_name: str = Form("Anonymous"),
+    rating: int = Form(...),
+    text: str = Form(...),
+    _: bool = Depends(verify_csrf),
+):
+    author_name = author_name.strip()[:100] or "Anonymous"
+    text = text.strip()[:2000]
+    if rating < 1 or rating > 5:
+        return RedirectResponse("/#testimonials", status_code=303)
+    async with async_session() as db:
+        user = await get_current_user(request)
+        review = Review(
+            user_id=user.id if user else None,
+            author_name=author_name,
+            rating=rating,
+            comment=text,
+            is_approved=True,
+        )
+        db.add(review)
+        await db.commit()
+    return RedirectResponse("/#testimonials", status_code=303)
+
+
+@app.get("/api/reviews")
+async def api_reviews():
+    async with async_session() as db:
+        reviews = (await db.execute(
+            select(Review).where(Review.is_approved == True).order_by(desc(Review.created_at)).limit(20)
+        )).scalars().all()
+    return [
+        {"author": r.author_name, "rating": r.rating, "comment": r.comment, "date": r.created_at.strftime("%Y-%m-%d") if r.created_at else ""}
+        for r in reviews
+    ]

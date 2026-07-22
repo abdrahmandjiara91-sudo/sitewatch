@@ -31,6 +31,8 @@ class User(Base):
     custom_webhooks: Mapped[str | None] = mapped_column(Text, nullable=True)
     audio_alert: Mapped[bool] = mapped_column(Boolean, default=False)
     language: Mapped[str] = mapped_column(String(5), default="en")
+    notify_slow: Mapped[bool] = mapped_column(Boolean, default=False)
+    slow_threshold_ms: Mapped[int] = mapped_column(Integer, default=3000)
     password_changed_at: Mapped[datetime.datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime, server_default=func.now()
@@ -54,6 +56,11 @@ class Site(Base):
     keyword: Mapped[str | None] = mapped_column(String(500), nullable=True)
     interval_sec: Mapped[int] = mapped_column(Integer, default=300)
     enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    notify_slack: Mapped[bool] = mapped_column(Boolean, default=False)
+    slack_webhook_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    notify_discord: Mapped[bool] = mapped_column(Boolean, default=False)
+    discord_webhook_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    custom_webhooks: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime, server_default=func.now()
     )
@@ -130,3 +137,27 @@ class RevokedToken(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     jti: Mapped[str] = mapped_column(String(64), unique=True, index=True)
     revoked_at: Mapped[datetime.datetime] = mapped_column(DateTime, server_default=func.now())
+
+
+class Review(Base):
+    __tablename__ = "reviews"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
+    author_name: Mapped[str] = mapped_column(String(100))
+    rating: Mapped[int] = mapped_column(Integer)
+    comment: Mapped[str] = mapped_column(Text)
+    is_approved: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime.datetime] = mapped_column(DateTime, server_default=func.now())
+
+
+class BlogPost(Base):
+    __tablename__ = "blog_posts"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str] = mapped_column(String(300))
+    slug: Mapped[str] = mapped_column(String(300), unique=True, index=True)
+    content: Mapped[str] = mapped_column(Text)
+    excerpt: Mapped[str] = mapped_column(String(500))
+    is_published: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime.datetime] = mapped_column(DateTime, server_default=func.now())

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog - SiteWatch</title>
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root, [data-theme="dark"] { --bg: #0f172a; --card: #1e293b; --border: #334155; --text: #e2e8f0; --heading: #f1f5f9; --muted: #94a3b8; --dim: #64748b; --accent: #3b82f6; --accent2: #38bdf8; }
+        [data-theme="light"] { --bg: #f8fafc; --card: #ffffff; --border: #e2e8f0; --text: #0f172a; --heading: #0f172a; --muted: #475569; --dim: #94a3b8; --accent: #2563eb; --accent2: #0284c7; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; transition: background 0.3s, color 0.3s; }
+        .nav { background: var(--card); border-bottom: 1px solid var(--border); padding: 0.8rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .nav-brand { color: var(--accent2); font-size: 1.3rem; font-weight: 700; text-decoration: none; }
+        .nav a { color: var(--muted); text-decoration: none; font-size: 0.85rem; }
+        .nav a:hover { color: var(--text); }
+        .container { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+        h1 { font-size: 2rem; margin-bottom: 2rem; }
+        .post-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; transition: border-color 0.3s; }
+        .post-card:hover { border-color: var(--accent); }
+        .post-card h2 { font-size: 1.3rem; margin-bottom: 0.5rem; }
+        .post-card h2 a { color: var(--text); text-decoration: none; }
+        .post-card h2 a:hover { color: var(--accent); }
+        .post-meta { color: var(--dim); font-size: 0.8rem; margin-bottom: 0.75rem; }
+        .post-excerpt { color: var(--muted); font-size: 0.95rem; line-height: 1.6; }
+        .btn { background: var(--accent); color: #fff; border: none; padding: 0.7rem 1.5rem; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; }
+        .btn:hover { filter: brightness(1.15); }
+        .empty { text-align: center; padding: 4rem; color: var(--dim); }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="/" class="nav-brand">&#9202; SiteWatch</a>
+        <div>
+            {% if user %}
+            <a href="/dashboard">Dashboard</a> &nbsp;|&nbsp;
+            {% else %}
+            <a href="/login">Login</a> &nbsp;|&nbsp;
+            {% endif %}
+            <a href="/blog">Blog</a>
+        </div>
+    </nav>
+    <div class="container">
+        <h1>Blog</h1>
+        {% if posts %}
+            {% for post in posts %}
+            <div class="post-card">
+                <h2><a href="/blog/{{ post.slug }}">{{ post.title }}</a></h2>
+                <div class="post-meta">{{ post.created_at.strftime('%B %d, %Y') if post.created_at else '' }}</div>
+                <p class="post-excerpt">{{ post.excerpt }}</p>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty">
+                <p>No blog posts yet.</p>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

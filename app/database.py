@@ -38,7 +38,16 @@ _TABLE_COLUMN_DEFAULTS = {
         "discord_webhook_url": "VARCHAR(500)",
         "custom_webhooks": "TEXT",
         "language": "VARCHAR(5) DEFAULT 'en'",
-    }
+        "notify_slow": "BOOLEAN DEFAULT FALSE",
+        "slow_threshold_ms": "INTEGER DEFAULT 3000",
+    },
+    "sites": {
+        "notify_slack": "BOOLEAN DEFAULT FALSE",
+        "slack_webhook_url": "VARCHAR(500)",
+        "notify_discord": "BOOLEAN DEFAULT FALSE",
+        "discord_webhook_url": "VARCHAR(500)",
+        "custom_webhooks": "TEXT",
+    },
 }
 
 
