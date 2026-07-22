@@ -82,12 +82,21 @@
 
         @media (max-width: 768px) {
             .sidebar { display: none; }
+            .sidebar.mobile-open { display: flex; position: fixed; z-index: 200; width: 280px; transform: translateX(-100%); animation: slideIn 0.3s forwards; }
             .main { margin-left: 0; padding: 1rem; }
+            .mobile-menu-btn { display: block; }
         }
+        .mobile-menu-btn { display: none; background: transparent; border: 1px solid var(--border); color: var(--text); padding: 0.5rem 0.7rem; border-radius: 8px; cursor: pointer; font-size: 1.3rem; position: fixed; top: 0.5rem; left: 0.5rem; z-index: 150; }
+        .mobile-menu-btn:hover { border-color: var(--accent); }
+        .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 190; }
+        .sidebar-overlay.active { display: block; }
+        @keyframes slideIn { from { transform: translateX(-100%); } to { transform: translateX(0); } }
     </style>
 </head>
 <body>
-    <aside class="sidebar">
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    <button class="mobile-menu-btn" onclick="toggleSidebar()">&#9776;</button>
+    <aside class="sidebar" id="settingsSidebar">
         <div class="sidebar-brand">
             <h2>&#9202; SiteWatch</h2>
             <p>{{ t.settings }} &amp; Preferences</p>
@@ -454,6 +463,13 @@
 
     <script>
         if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/static/service-worker.js'); }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('settingsSidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.toggle('mobile-open');
+            overlay.classList.toggle('active');
+        }
 
         function getTheme() { return localStorage.getItem('theme') || 'dark'; }
         function applyTheme(t) {
