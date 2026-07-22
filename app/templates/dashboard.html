@@ -55,6 +55,22 @@
         .theme-toggle { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 0.35rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 1rem; transition: all 0.2s; }
         .theme-toggle:hover { border-color: var(--accent); }
 
+        .hamburger { display: none; background: transparent; border: 1px solid var(--border); color: var(--text); padding: 0.5rem 0.7rem; border-radius: 8px; cursor: pointer; font-size: 1.3rem; transition: all 0.2s; }
+        .hamburger:hover { border-color: var(--accent); }
+        .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 90; }
+        .mobile-sidebar { display: none; position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: var(--card); border-right: 1px solid var(--border); z-index: 100; padding: 1.5rem 0; overflow-y: auto; transform: translateX(-100%); transition: transform 0.3s ease; }
+        .mobile-sidebar.open { transform: translateX(0); }
+        .mobile-sidebar-header { padding: 0 1.5rem 1rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .mobile-sidebar-header h2 { color: var(--accent2); font-size: 1.2rem; }
+        .mobile-sidebar-close { background: transparent; border: none; color: var(--muted); font-size: 1.5rem; cursor: pointer; padding: 0.25rem; }
+        .mobile-sidebar-nav { padding: 1rem 0; }
+        .mobile-sidebar-nav a { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.5rem; color: var(--muted); text-decoration: none; font-size: 0.9rem; transition: all 0.2s; }
+        .mobile-sidebar-nav a:hover, .mobile-sidebar-nav a.active { background: rgba(59,130,246,0.1); color: var(--accent); }
+        .mobile-sidebar-nav .divider { height: 1px; background: var(--border); margin: 0.75rem 0; }
+        .mobile-sidebar-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--border); margin-top: auto; }
+        .mobile-sidebar-footer form { width: 100%; }
+        .mobile-sidebar-footer button { width: 100%; text-align: left; background: transparent; border: none; color: var(--red); padding: 0.75rem 1.5rem; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 0.75rem; }
+
         .container { max-width: 1200px; margin: 1.5rem auto; padding: 0 1rem; }
 
         .plan-bar { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.5rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; transition: background 0.3s; }
@@ -140,16 +156,48 @@
             .site-card { flex-direction: column; align-items: flex-start; }
             .site-actions { width: 100%; justify-content: flex-end; }
             .form-row input[name="name"] { width: 100%; }
-            .header { flex-direction: column; gap: 0.5rem; padding: 0.8rem 1rem; }
+            .header-nav { display: none !important; }
+            .hamburger { display: block; }
+            .mobile-sidebar, .sidebar-overlay { display: block; }
         }
     </style>
 </head>
 <body>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <nav class="mobile-sidebar" id="mobileSidebar">
+        <div class="mobile-sidebar-header">
+            <h2>&#9202; SiteWatch</h2>
+            <button class="mobile-sidebar-close" onclick="closeSidebar()">&times;</button>
+        </div>
+        <div class="mobile-sidebar-nav">
+            <a href="/dashboard" class="active">&#128200; {{ t.dashboard }}</a>
+            <a href="/stats">&#128200; {{ t.statistics }}</a>
+            <a href="/settings">&#9881; {{ t.settings }}</a>
+            <a href="/api-keys">&#128273; {{ t.api_keys }}</a>
+            <a href="/blog">&#128196; Blog</a>
+            <a href="/pricing">&#128176; {{ t.pricing }}</a>
+            <a href="/status/{{ user.username }}" target="_blank">&#128200; {{ t.status_page_title }}</a>
+            {% if user.is_admin %}
+            <div class="divider"></div>
+            <a href="/admin">&#128737; {{ t.admin }}</a>
+            {% endif %}
+            <div class="divider"></div>
+            <a href="#" style="color:var(--accent2);">&#128100; {{ user.username }}</a>
+        </div>
+        <div class="mobile-sidebar-footer">
+            <form method="POST" action="/logout">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button type="submit">&#128682; {{ t.logout }}</button>
+            </form>
+        </div>
+    </nav>
+
     <div class="header">
         <h1>&#9202; SiteWatch</h1>
         <div class="header-right">
             <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">&#9790;</button>
             <span class="plan-badge plan-{{ user.plan }}">{{ plan.name }}</span>
+            <button class="hamburger" onclick="openSidebar()">&#9776;</button>
             <div class="header-nav">
                 <a href="/stats">&#128200; {{ t.statistics }}</a>
                 <a href="/pricing">&#128176; {{ t.pricing }}</a>
@@ -292,6 +340,14 @@
     </div>
 
     <script>
+        function openSidebar() {
+            document.getElementById('mobileSidebar').classList.add('open');
+            document.getElementById('sidebarOverlay').style.display = 'block';
+        }
+        function closeSidebar() {
+            document.getElementById('mobileSidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').style.display = 'none';
+        }
         function getTheme() { return localStorage.getItem('theme') || 'dark'; }
         function applyTheme(t) {
             document.documentElement.setAttribute('data-theme', t);

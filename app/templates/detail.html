@@ -64,11 +64,56 @@
         .toggle:checked::before { transform: translateX(20px); }
         .btn { background: #2563eb; color: #fff; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: filter 0.2s; }
         .btn:hover { filter: brightness(1.15); }
+
+        .hamburger { display: none; background: transparent; border: 1px solid #334155; color: #e2e8f0; padding: 0.5rem 0.7rem; border-radius: 8px; cursor: pointer; font-size: 1.3rem; }
+        .hamburger:hover { border-color: #38bdf8; }
+        .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 90; }
+        .mobile-sidebar { display: none; position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: #1e293b; border-right: 1px solid #334155; z-index: 100; padding: 1.5rem 0; overflow-y: auto; transform: translateX(-100%); transition: transform 0.3s ease; }
+        .mobile-sidebar.open { transform: translateX(0); }
+        .mobile-sidebar-header { padding: 0 1.5rem 1rem; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
+        .mobile-sidebar-header h2 { color: #38bdf8; font-size: 1.2rem; }
+        .mobile-sidebar-close { background: transparent; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer; }
+        .mobile-sidebar-nav { padding: 1rem 0; }
+        .mobile-sidebar-nav a { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.5rem; color: #94a3b8; text-decoration: none; font-size: 0.9rem; }
+        .mobile-sidebar-nav a:hover, .mobile-sidebar-nav a.active { background: rgba(59,130,246,0.1); color: #38bdf8; }
+        .mobile-sidebar-nav .divider { height: 1px; background: #334155; margin: 0.75rem 0; }
+        .mobile-sidebar-footer { padding: 1rem 1.5rem; border-top: 1px solid #334155; margin-top: auto; }
+        .mobile-sidebar-footer button { width: 100%; text-align: left; background: transparent; border: none; color: #f87171; padding: 0.75rem 1.5rem; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 0.75rem; }
+
+        @media (max-width: 768px) {
+            .header-nav { display: none !important; }
+            .hamburger { display: block; }
+            .mobile-sidebar, .sidebar-overlay { display: block; }
+            .info-grid { grid-template-columns: repeat(2, 1fr); }
+            .notif-section { padding: 1rem; }
+        }
     </style>
 </head>
 <body>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <nav class="mobile-sidebar" id="mobileSidebar">
+        <div class="mobile-sidebar-header">
+            <h2>&#9202; SiteWatch</h2>
+            <button class="mobile-sidebar-close" onclick="closeSidebar()">&times;</button>
+        </div>
+        <div class="mobile-sidebar-nav">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/settings">{{ t.settings }}</a>
+            <a href="/blog">Blog</a>
+            <div class="divider"></div>
+            <a href="/dashboard" style="color:#38bdf8;">&#128100; {{ t.dashboard }}</a>
+        </div>
+        <div class="mobile-sidebar-footer">
+            <form method="POST" action="/logout">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button type="submit">{{ t.logout }}</button>
+            </form>
+        </div>
+    </nav>
+
     <div class="header">
         <h1>{{ site.name }}</h1>
+        <button class="hamburger" onclick="openSidebar()">&#9776;</button>
         <div class="header-nav">
             <a href="/dashboard">&larr; {{ t.dashboard }}</a>
             <a href="/export/{{ site.id }}" style="color:#38bdf8; font-weight:600;">{{ t.export_csv }}</a>
@@ -192,6 +237,8 @@
         </div>
     </div>
     <script>
+        function openSidebar() { document.getElementById('mobileSidebar').classList.add('open'); document.getElementById('sidebarOverlay').style.display = 'block'; }
+        function closeSidebar() { document.getElementById('mobileSidebar').classList.remove('open'); document.getElementById('sidebarOverlay').style.display = 'none'; }
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('/static/service-worker.js');
         }
