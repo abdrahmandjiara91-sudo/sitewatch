@@ -1,41 +1,62 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pricing - SiteWatch</title>
+    <title>{{ t.pricing }} - SiteWatch</title>
     <link rel="manifest" href="/static/manifest.json">
     <meta name="theme-color" content="#2563eb">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <link rel="apple-touch-icon" href="/static/icon-192.png">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
-        .header { background: #1e293b; border-bottom: 1px solid #334155; padding: 0.8rem 2rem; display: flex; justify-content: space-between; align-items: center; }
-        .header h1 { font-size: 1.3rem; color: #38bdf8; }
-        .header a { color: #94a3b8; text-decoration: none; font-size: 0.85rem; }
+        :root, [data-theme="dark"] {
+            --bg: #0f172a; --card: #1e293b; --border: #334155; --text: #e2e8f0; --heading: #f1f5f9;
+            --muted: #94a3b8; --dim: #64748b; --accent: #3b82f6; --accent2: #38bdf8;
+            --green: #4ade80; --red: #f87171; --yellow: #facc15;
+            --input-bg: #0f172a; --input-border: #475569;
+        }
+        [data-theme="light"] {
+            --bg: #f8fafc; --card: #ffffff; --border: #e2e8f0; --text: #0f172a; --heading: #0f172a;
+            --muted: #475569; --dim: #94a3b8; --accent: #2563eb; --accent2: #0284c7;
+            --green: #16a34a; --red: #dc2626; --yellow: #ca8a04;
+            --input-bg: #ffffff; --input-border: #d1d5db;
+        }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; transition: background 0.3s, color 0.3s; }
+        .header { background: var(--card); border-bottom: 1px solid var(--border); padding: 0.8rem 2rem; display: flex; justify-content: space-between; align-items: center; transition: background 0.3s; }
+        .header h1 { font-size: 1.3rem; color: var(--accent2); }
+        .header a { color: var(--muted); text-decoration: none; font-size: 0.85rem; }
+        .header a:hover { color: var(--text); }
         .container { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
         .page-title { text-align: center; margin-bottom: 2.5rem; }
         .page-title h2 { font-size: 2rem; margin-bottom: 0.5rem; }
-        .page-title p { color: #64748b; }
+        .page-title p { color: var(--dim); }
 
         .plans-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
-        .plan-card { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 2rem; text-align: center; position: relative; transition: border-color 0.3s; }
-        .plan-card:hover { border-color: #475569; }
-        .plan-card.featured { border-color: #2563eb; }
-        .plan-card.featured::before { content: "MOST POPULAR"; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #2563eb; color: #fff; font-size: 0.7rem; font-weight: 700; padding: 0.3rem 1rem; border-radius: 20px; }
+        .plan-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; text-align: center; position: relative; transition: border-color 0.3s, background 0.3s; }
+        .plan-card:hover { border-color: var(--dim); }
+        .plan-card.featured { border-color: var(--accent); }
+        .plan-card.featured::before { content: "MOST POPULAR"; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--accent); color: #fff; font-size: 0.7rem; font-weight: 700; padding: 0.3rem 1rem; border-radius: 20px; }
         .plan-card h3 { font-size: 1.3rem; margin-bottom: 0.5rem; }
         .plan-card .price { font-size: 2.5rem; font-weight: 700; margin: 1rem 0; }
-        .plan-card .price span { font-size: 1rem; font-weight: 400; color: #64748b; }
+        .plan-card .price span { font-size: 1rem; font-weight: 400; color: var(--dim); }
         .plan-card ul { list-style: none; margin: 1.5rem 0; text-align: left; }
-        .plan-card li { padding: 0.5rem 0; color: #94a3b8; font-size: 0.9rem; border-bottom: 1px solid #1e293b; }
-        .plan-card li::before { content: "✓ "; color: #4ade80; font-weight: 700; }
+        .plan-card li { padding: 0.5rem 0; color: var(--muted); font-size: 0.9rem; border-bottom: 1px solid var(--border); }
+        .plan-card li::before { content: "\2713 "; color: var(--green); font-weight: 700; }
         .btn { display: inline-block; width: 100%; padding: 0.8rem; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; text-decoration: none; text-align: center; border: none; transition: all 0.2s; }
-        .btn-primary { background: #2563eb; color: #fff; }
-        .btn-primary:hover { background: #3b82f6; }
-        .btn-outline { background: transparent; border: 1px solid #475569; color: #94a3b8; }
-        .btn-outline:hover { background: #1e293b; }
-        .current { background: #166534; color: #4ade80; }
+        .btn-primary { background: var(--accent); color: #fff; }
+        .btn-primary:hover { filter: brightness(1.15); }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+        .btn-outline:hover { background: var(--card); }
+        .btn-current { background: #166534; color: var(--green); cursor: default; }
+
+        .contact-box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; margin-top: 3rem; text-align: center; }
+        .contact-box h3 { color: var(--accent2); margin-bottom: 1rem; }
+        .contact-box a { color: var(--accent); text-decoration: none; font-weight: 600; }
+        .contact-box a:hover { text-decoration: underline; }
+        .contact-links { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 1rem; }
+        .contact-links a { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.8rem 1.5rem; border: 1px solid var(--border); border-radius: 10px; color: var(--text); background: var(--card); transition: all 0.2s; }
+        .contact-links a:hover { border-color: var(--accent); box-shadow: 0 0 12px rgba(59,130,246,0.3); }
+        .payment-note { color: var(--dim); font-size: 0.85rem; margin-top: 1rem; }
 
         @media (max-width: 768px) { .plans-grid { grid-template-columns: 1fr; } }
     </style>
@@ -45,17 +66,17 @@
         <h1>&#9202; SiteWatch</h1>
         <div>
             {% if user %}
-            <a href="/dashboard">Dashboard</a>
+            <a href="/dashboard">{{ t.dashboard }}</a>
             {% else %}
-            <a href="/login">Login</a>
+            <a href="/login">{{ t.login }}</a>
             {% endif %}
         </div>
     </div>
 
     <div class="container">
         <div class="page-title">
-            <h2>Simple Pricing</h2>
-            <p>Choose the plan that fits your needs</p>
+            <h2>{{ t.simple_pricing }}</h2>
+            <p>{{ t.choose_plan }}</p>
         </div>
 
         <div class="plans-grid">
@@ -64,29 +85,37 @@
                 <h3>{{ p.name }}</h3>
                 <div class="price">${{ p.price }}<span>/month</span></div>
                 <ul>
-                    <li>{{ p.max_sites }} websites</li>
-                    <li>Check every {{ p.interval }} seconds</li>
-                    <li>Uptime monitoring</li>
-                    <li>Response time tracking</li>
-                    {% if key != "free" %}<li>SSL certificate monitoring</li>{% endif %}
-                    {% if key == "enterprise" %}<li>Priority support</li>{% endif %}
-                    {% if key == "enterprise" %}<li>Custom check intervals</li>{% endif %}
+                    <li>{{ p.max_sites }} {{ t.websites }}</li>
+                    <li>{{ t.check_every }} {{ p.interval }} {{ t.seconds }}</li>
+                    <li>{{ t.uptime_monitoring }}</li>
+                    <li>{{ t.response_time_tracking }}</li>
+                    {% if key != "free" %}<li>{{ t.ssl_cert_monitoring }}</li>{% endif %}
+                    {% if key == "enterprise" %}<li>{{ t.priority_support }}</li>{% endif %}
+                    {% if key == "enterprise" %}<li>{{ t.custom_intervals }}</li>{% endif %}
                 </ul>
                 {% if user and user.plan == key %}
-                <button class="btn current" disabled>Current Plan</button>
+                <button class="btn btn-current" disabled>{{ t.current_plan }}</button>
                 {% elif p.price == 0 %}
-                <a href="/register" class="btn btn-primary">Get Started Free</a>
+                <a href="/register" class="btn btn-primary">{{ t.get_started_free }}</a>
                 {% else %}
-                <button class="btn btn-primary" onclick="alert('Stripe integration coming soon!')">Upgrade Now</button>
+                <a href="#contact" class="btn btn-primary">{{ t.contact_to_upgrade }}</a>
                 {% endif %}
             </div>
             {% endfor %}
         </div>
+
+        <div class="contact-box" id="contact">
+            <h3>{{ t.contact_to_upgrade }}</h3>
+            <p style="color: var(--muted); margin-bottom: 1rem;">{{ t.choose_plan }}</p>
+            <div class="contact-links">
+                <a href="https://wa.me/212776781869" target="_blank">&#128242; WhatsApp</a>
+                <a href="mailto:abdrahmandjiara91@gmail.com">&#128231; Email</a>
+            </div>
+            <p class="payment-note">{{ t.payment_note }}</p>
+        </div>
     </div>
     <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/static/service-worker.js');
-        }
+        if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/static/service-worker.js'); }
     </script>
 </body>
 </html>
