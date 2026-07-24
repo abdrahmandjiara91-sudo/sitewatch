@@ -24,13 +24,14 @@
         }
         .sitewatch-bg::before {
             content: '';
-            position: absolute;
+            position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
             background: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.15), transparent 70%);
             z-index: 0;
             pointer-events: none;
         }
         .sitewatch-bg > * { position: relative; z-index: 1; }
+        .sitewatch-bg > .globe-fixed { position: fixed; z-index: 0; }
 
         .nav { background: #1e293b; border-bottom: 1px solid #334155; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50; }
         .nav-brand { font-size: 1.4rem; font-weight: 700; color: #38bdf8; }
@@ -43,25 +44,23 @@
         .btn-outline:hover { background: #1e293b; border-color: #38bdf8; }
         .btn-lg { padding: 1rem 2rem; font-size: 1.1rem; }
 
-        .hero { text-align: center; padding: 5rem 2rem 4rem; max-width: 900px; margin: 0 auto; position: relative; }
+        .hero { text-align: center; padding: 5rem 2rem 4rem; max-width: 900px; margin: 0 auto; position: relative; background: transparent; }
         .hero-badge { background: #1e3a5f; color: #60a5fa; padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; display: inline-block; margin-bottom: 1.5rem; position: relative; z-index: 2; }
         .hero h1 { font-size: 3.2rem; font-weight: 800; line-height: 1.2; margin-bottom: 1.5rem; position: relative; z-index: 2; }
         .hero h1 span { color: #38bdf8; }
         .hero p { font-size: 1.2rem; color: #94a3b8; max-width: 600px; margin: 0 auto 2rem; position: relative; z-index: 2; }
         .hero-buttons { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; position: relative; z-index: 2; }
 
-        .globe-container {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 500px;
-            height: 500px;
-            z-index: 1;
+        .globe-fixed {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
             pointer-events: none;
-            opacity: 0.6;
         }
-        .globe-container canvas { width: 100%; height: 100%; }
+        .globe-fixed canvas { width: 100%; height: 100%; display: block; }
 
         .stats-bar { display: flex; justify-content: center; gap: 3rem; padding: 2rem; margin: 2rem auto; max-width: 700px; }
         .stat { text-align: center; }
@@ -157,6 +156,7 @@
     </style>
 </head>
 <body class="sitewatch-bg">
+    <div class="globe-fixed"><canvas id="globe-canvas"></canvas></div>
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
     <nav class="mobile-sidebar" id="mobileSidebar">
         <div class="mobile-sidebar-header">
@@ -198,7 +198,6 @@
     </nav>
 
     <section class="hero">
-        <div class="globe-container"><canvas id="globe-canvas"></canvas></div>
         <div class="hero-badge">FREE Forever Plan Available</div>
         <h1>Know When Your Site Goes <span>Down</span></h1>
         <p>Monitor your websites 24/7. Get instant alerts when something goes wrong. Never lose a customer to downtime again.</p>
