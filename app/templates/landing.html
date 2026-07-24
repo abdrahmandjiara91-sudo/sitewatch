@@ -14,6 +14,22 @@
         body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #0f172a; color: #e2e8f0; line-height: 1.6; }
         a { color: inherit; text-decoration: none; }
 
+        .sitewatch-bg {
+            background-color: #0f172a;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+            position: relative;
+        }
+        .sitewatch-bg::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.15), transparent 70%);
+            z-index: 0;
+        }
+
         .nav { background: #1e293b; border-bottom: 1px solid #334155; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50; }
         .nav-brand { font-size: 1.4rem; font-weight: 700; color: #38bdf8; }
         .nav-links { display: flex; gap: 1.5rem; align-items: center; }
@@ -125,7 +141,7 @@
         .mobile-sidebar-footer button { width: 100%; text-align: left; background: transparent; border: none; color: #f87171; padding: 0.75rem 1.5rem; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 0.75rem; }
     </style>
 </head>
-<body>
+<body class="sitewatch-bg">
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
     <nav class="mobile-sidebar" id="mobileSidebar">
         <div class="mobile-sidebar-header">
