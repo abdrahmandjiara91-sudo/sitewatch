@@ -218,6 +218,12 @@ TRANSLATIONS = {
         "contact_whatsapp": "Contact via WhatsApp",
         "contact_email": "Or send us an email",
         "payment_note": "Accepted payments: bank transfer, mobile money, or local methods",
+        "about_us": "About UptimeNode",
+        "about_desc": "UptimeNode is a comprehensive uptime and performance monitoring platform. We help website owners and developers monitor their sites 24/7 and get instant alerts when something goes wrong.",
+        "contact_us": "Contact Us",
+        "contact_desc": "Have questions or need help? We're here for you.",
+        "email_us": "Email us at",
+        "chat_whatsapp": "Chat on WhatsApp",
     },
     "ar": {
         "site_name": "UptimeNode",
@@ -438,6 +444,12 @@ TRANSLATIONS = {
         "contact_whatsapp": "تواصل عبر واتساب",
         "contact_email": "أو أرسل بريداً إلكترونياً",
         "payment_note": "طرق الدفع: تحويل بنكي، فودافون كاش، أو أي طريقة محلية",
+        "about_us": "عن UptimeNode",
+        "about_desc": "UptimeNode منصة متكاملة لمراقبة أداء واستقرار المنصات والسيرفرات. نساعد أصحاب المواقع والمطورين في مراقبة مواقعهم على مدار الساعة والحصول على تنبيهات فورية عند حدوث مشكلة.",
+        "contact_us": "تواصل معنا",
+        "contact_desc": "هل لديك أسئلة أو تحتاج مساعدة؟ نحن هنا من أجلك.",
+        "email_us": "أرسل لنا بريداً إلكترونياً على",
+        "chat_whatsapp": "تحدث عبر واتساب",
     },
 }
 

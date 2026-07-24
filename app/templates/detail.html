@@ -214,7 +214,13 @@
             <h3>&#9881; Site Settings</h3>
             <form method="POST" action="/sites/{{ site.id }}/update">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                <label>
+
+                <div style="margin-top:0.5rem;">
+                    <label style="display:block; font-size:0.85rem; color:#94a3b8; margin-bottom:0.4rem;">Site Name</label>
+                    <input type="text" name="name" value="{{ site.name }}" maxlength="200" style="width:100%; background:#050505; border:1px solid rgba(0,255,102,0.12); color:#e2e8f0; padding:0.6rem 0.8rem; border-radius:4px; font-size:0.9rem; outline:none;" placeholder="Site name">
+                </div>
+
+                <label style="margin-top:1rem;">
                     <input type="checkbox" class="toggle" name="check_ssl" value="true" {{ 'checked' if site.check_ssl }}>
                     {{ t.ssl_check }}
                 </label>

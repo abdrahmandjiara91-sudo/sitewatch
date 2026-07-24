@@ -663,6 +663,7 @@ async def toggle_site(site_id: int, user: User = Depends(require_auth), _: bool 
 async def update_site(
     request: Request,
     site_id: int,
+    name: str = Form(...),
     check_ssl: bool = Form(False),
     enabled: bool = Form(True),
     expected_status: int = Form(200),
@@ -674,6 +675,7 @@ async def update_site(
         site = await db.get(Site, site_id)
         if not site or site.user_id != user.id:
             return RedirectResponse("/dashboard", status_code=303)
+        site.name = name[:200]
         site.check_ssl = check_ssl
         site.enabled = enabled
         site.expected_status = expected_status
