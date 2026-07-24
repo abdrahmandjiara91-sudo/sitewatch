@@ -658,6 +658,30 @@ async def toggle_site(site_id: int, user: User = Depends(require_auth), _: bool 
     return RedirectResponse("/dashboard", status_code=303)
 
 
+@app.post("/sites/{site_id}/update")
+@limiter.limit("20/minute")
+async def update_site(
+    request: Request,
+    site_id: int,
+    check_ssl: bool = Form(False),
+    enabled: bool = Form(True),
+    expected_status: int = Form(200),
+    keyword: str = Form(""),
+    user: User = Depends(require_auth),
+    _: bool = Depends(verify_csrf),
+):
+    async with async_session() as db:
+        site = await db.get(Site, site_id)
+        if not site or site.user_id != user.id:
+            return RedirectResponse("/dashboard", status_code=303)
+        site.check_ssl = check_ssl
+        site.enabled = enabled
+        site.expected_status = expected_status
+        site.keyword = keyword if keyword else None
+        await db.commit()
+    return RedirectResponse(f"/site/{site_id}", status_code=303)
+
+
 @app.get("/site/{site_id}", response_class=HTMLResponse)
 async def site_detail(request: Request, site_id: int, user: User = Depends(require_auth)):
     async with async_session() as db:
