@@ -226,7 +226,74 @@
     </div>
 
     <div class="container">
-        <div class="globe-section"><div id="globe-bg" data-dashboard="true"></div></div>
+        <div class="globe-section">
+            <svg viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;display:block;">
+                <defs>
+                    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stop-color="#00ff66" stop-opacity="0.08"/>
+                        <stop offset="100%" stop-color="#00ff66" stop-opacity="0"/>
+                    </radialGradient>
+                    <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#00ff66" stop-opacity="0"/>
+                        <stop offset="50%" stop-color="#00ff66" stop-opacity="0.4"/>
+                        <stop offset="100%" stop-color="#00ff66" stop-opacity="0"/>
+                    </linearGradient>
+                </defs>
+                <!-- glow -->
+                <circle cx="300" cy="150" r="140" fill="url(#glow)"/>
+                <!-- globe wireframe circles -->
+                <circle cx="300" cy="150" r="120" fill="none" stroke="#00ff66" stroke-opacity="0.12" stroke-width="0.8"/>
+                <ellipse cx="300" cy="150" rx="120" ry="40" fill="none" stroke="#00ff66" stroke-opacity="0.08" stroke-width="0.6"/>
+                <ellipse cx="300" cy="150" rx="120" ry="80" fill="none" stroke="#00ff66" stroke-opacity="0.08" stroke-width="0.6"/>
+                <ellipse cx="300" cy="150" rx="120" ry="110" fill="none" stroke="#00ff66" stroke-opacity="0.06" stroke-width="0.6"/>
+                <ellipse cx="300" cy="150" rx="40" ry="120" fill="none" stroke="#00ff66" stroke-opacity="0.08" stroke-width="0.6" transform="rotate(0,300,150)"/>
+                <ellipse cx="300" cy="150" rx="80" ry="120" fill="none" stroke="#00ff66" stroke-opacity="0.08" stroke-width="0.6"/>
+                <ellipse cx="300" cy="150" rx="110" ry="120" fill="none" stroke="#00ff66" stroke-opacity="0.06" stroke-width="0.6"/>
+                <!-- equator -->
+                <line x1="180" y1="150" x2="420" y2="150" stroke="#00ff66" stroke-opacity="0.15" stroke-width="0.5"/>
+                <!-- connection lines -->
+                <line x1="250" y1="100" x2="340" y2="80" stroke="url(#lineGrad)" stroke-width="1"/>
+                <line x1="340" y1="80" x2="380" y2="130" stroke="url(#lineGrad)" stroke-width="1"/>
+                <line x1="250" y1="100" x2="220" y2="170" stroke="url(#lineGrad)" stroke-width="1"/>
+                <line x1="380" y1="130" x2="350" y2="200" stroke="url(#lineGrad)" stroke-width="1"/>
+                <line x1="220" y1="170" x2="350" y2="200" stroke="url(#lineGrad)" stroke-width="1"/>
+                <line x1="280" y1="120" x2="320" y2="170" stroke="url(#lineGrad)" stroke-width="0.8"/>
+                <!-- city dots -->
+                <circle cx="250" cy="100" r="3" fill="#00ff66" opacity="0.9"/>
+                <circle cx="250" cy="100" r="6" fill="none" stroke="#00ff66" stroke-opacity="0.3" stroke-width="0.8"/>
+                <circle cx="340" cy="80" r="3" fill="#00ff66" opacity="0.9"/>
+                <circle cx="340" cy="80" r="6" fill="none" stroke="#00ff66" stroke-opacity="0.3" stroke-width="0.8"/>
+                <circle cx="380" cy="130" r="3" fill="#00ff66" opacity="0.9"/>
+                <circle cx="380" cy="130" r="6" fill="none" stroke="#00ff66" stroke-opacity="0.3" stroke-width="0.8"/>
+                <circle cx="220" cy="170" r="3" fill="#00ff66" opacity="0.9"/>
+                <circle cx="220" cy="170" r="6" fill="none" stroke="#00ff66" stroke-opacity="0.3" stroke-width="0.8"/>
+                <circle cx="350" cy="200" r="3" fill="#00ff66" opacity="0.9"/>
+                <circle cx="350" cy="200" r="6" fill="none" stroke="#00ff66" stroke-opacity="0.3" stroke-width="0.8"/>
+                <circle cx="300" cy="120" r="2.5" fill="#00ff66" opacity="0.7"/>
+                <circle cx="320" cy="170" r="2.5" fill="#00ff66" opacity="0.7"/>
+                <!-- surface dots -->
+                <circle cx="270" cy="90" r="1" fill="#00ff66" opacity="0.4"/>
+                <circle cx="310" cy="100" r="1" fill="#00ff66" opacity="0.35"/>
+                <circle cx="360" cy="110" r="1" fill="#00ff66" opacity="0.3"/>
+                <circle cx="240" cy="140" r="1" fill="#00ff66" opacity="0.4"/>
+                <circle cx="370" cy="160" r="1" fill="#00ff66" opacity="0.3"/>
+                <circle cx="290" cy="190" r="1" fill="#00ff66" opacity="0.35"/>
+                <circle cx="330" cy="220" r="1" fill="#00ff66" opacity="0.3"/>
+                <circle cx="260" cy="210" r="1" fill="#00ff66" opacity="0.4"/>
+                <!-- HUD text -->
+                <text x="20" y="25" fill="#00ff66" opacity="0.5" font-family="Courier New,monospace" font-size="10">SITEWATCH MONITORING</text>
+                <text x="20" y="40" fill="#00ff66" opacity="0.4" font-family="Courier New,monospace" font-size="9">STATUS: ALL SYSTEMS ONLINE</text>
+                <rect x="15" y="12" width="195" height="36" rx="2" fill="none" stroke="#00ff66" stroke-opacity="0.12" stroke-width="0.5"/>
+                <text x="20" y="285" fill="#00ff66" opacity="0.4" font-family="Courier New,monospace" font-size="9">NODES: 20</text>
+                <text x="20" y="298" fill="#00ff66" opacity="0.4" font-family="Courier New,monospace" font-size="9">LATENCY: 48ms</text>
+                <rect x="15" y="273" width="140" height="32" rx="2" fill="none" stroke="#00ff66" stroke-opacity="0.12" stroke-width="0.5"/>
+                <!-- animated pulse on main dot -->
+                <circle cx="250" cy="100" r="8" fill="none" stroke="#00ff66" stroke-opacity="0.2" stroke-width="0.5">
+                    <animate attributeName="r" values="6;12;6" dur="2s" repeatCount="indefinite"/>
+                    <animate attributeName="stroke-opacity" values="0.3;0.05;0.3" dur="2s" repeatCount="indefinite"/>
+                </circle>
+            </svg>
+        </div>
         <div class="plan-bar">
             <div class="plan-text">
                 <strong>{{ plan.name }} {{ t.plan }}</strong> &mdash; {{ sites_count }}/{{ max_sites }} {{ t.sites_monitored }}
@@ -421,17 +488,6 @@
             } catch(e) {}
         })();
         {% endif %}
-    </script>
-    <script src="/static/js/globe3d.js"></script>
-    <script>
-        window.monitoringSites = [
-            {% for site in sites %}
-            {
-                name: "{{ site.name }}",
-                status: "{{ 'up' if site.last_check and site.last_check.is_up else 'down' }}"
-            }{% if not loop.last %},{% endif %}
-            {% endfor %}
-        ];
     </script>
 </body>
 </html>
