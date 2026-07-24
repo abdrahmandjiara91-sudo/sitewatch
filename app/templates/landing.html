@@ -28,7 +28,9 @@
             top: 0; left: 0; right: 0; bottom: 0;
             background: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.15), transparent 70%);
             z-index: 0;
+            pointer-events: none;
         }
+        .sitewatch-bg > * { position: relative; z-index: 1; }
 
         .nav { background: #1e293b; border-bottom: 1px solid #334155; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50; }
         .nav-brand { font-size: 1.4rem; font-weight: 700; color: #38bdf8; }
