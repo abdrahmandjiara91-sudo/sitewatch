@@ -213,10 +213,6 @@
     </div>
 
     <div class="container">
-        <div class="globe-container" style="position:relative; height:400px; margin-bottom:1.5rem; border-radius:16px; overflow:hidden; background:rgba(15,23,42,0.8); border:1px solid rgba(34,197,94,0.2); box-shadow: 0 0 40px rgba(34,197,94,0.05);">
-            <canvas id="globe-canvas"></canvas>
-        </div>
-
         <div class="plan-bar">
             <div class="plan-text">
                 <strong>{{ plan.name }} {{ t.plan }}</strong> &mdash; {{ sites_count }}/{{ max_sites }} {{ t.sites_monitored }}
@@ -411,15 +407,6 @@
             } catch(e) {}
         })();
         {% endif %}
-    </script>
-    <script src="/static/js/globe.js"></script>
-    <script>
-        // Pass site status to globe
-        window.monitoringSites = [
-            {% for site in sites %}
-            { status: '{{ "up" if site.last_status else "down" }}' }{% if not loop.last %},{% endif %}
-            {% endfor %}
-        ];
     </script>
 </body>
 </html>
