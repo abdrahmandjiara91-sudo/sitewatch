@@ -10,10 +10,10 @@
     if (!window.THREE) {
         var s = document.createElement('script');
         s.src = 'https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.min.js';
-        s.onload = initGlobe;
+        s.onload = function() { requestAnimationFrame(initGlobe); };
         document.head.appendChild(s);
     } else {
-        initGlobe();
+        requestAnimationFrame(initGlobe);
     }
 
     function initGlobe() {
@@ -21,18 +21,21 @@
         var isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth < 768;
         var isDashboard = container.getAttribute('data-dashboard') === 'true';
 
+        var cw = container.clientWidth || container.offsetWidth || window.innerWidth;
+        var ch = container.clientHeight || container.offsetHeight || 300;
+
         var scene = new THREE.Scene();
         scene.background = null;
 
         var camera = new THREE.PerspectiveCamera(
             isMobile ? 60 : 48,
-            container.clientWidth / container.clientHeight,
+            cw / ch,
             0.1, 1000
         );
         camera.position.z = isMobile ? 4.0 : 3.2;
 
         var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setSize(cw, ch);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.setClearColor(0x000000, 0);
         container.appendChild(renderer.domElement);
