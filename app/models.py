@@ -6,8 +6,8 @@ from app.database import Base
 
 PLANS = {
     "free": {"name": "Free", "max_sites": 1, "interval": 300, "price": 0},
-    "pro": {"name": "Pro", "max_sites": 999, "interval": 60, "price": 9},
-    "enterprise": {"name": "Enterprise", "max_sites": 999, "interval": 30, "price": 29},
+    "pro": {"name": "Pro", "max_sites": 30, "interval": 60, "price": 9},
+    "enterprise": {"name": "Enterprise", "max_sites": -1, "interval": 30, "price": 29},
 }
 
 

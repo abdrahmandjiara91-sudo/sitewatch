@@ -79,3 +79,9 @@ async def init_db():
                 await _ensure_columns(conn, table, columns)
             except Exception as e:
                 log.warning("Migration skip for %s: %s", table, e)
+        # Rebrand migration: replace SiteWatch with UptimeNode in blog posts
+        try:
+            await conn.execute(text("UPDATE blog_posts SET title = REPLACE(title, 'SiteWatch', 'UptimeNode'), content = REPLACE(content, 'SiteWatch', 'UptimeNode') WHERE title LIKE '%SiteWatch%' OR content LIKE '%SiteWatch%'"))
+            log.info("Blog posts rebranded to UptimeNode")
+        except Exception as e:
+            log.warning("Blog rebrand migration skip: %s", e)

@@ -598,7 +598,7 @@ async def add_site(
         count_q = select(func.count(Site.id)).where(Site.user_id == user.id)
         count = (await db.execute(count_q)).scalar() or 0
 
-        if count >= plan_info["max_sites"]:
+        if plan_info["max_sites"] != -1 and count >= plan_info["max_sites"]:
             return render(request, "dashboard.html", {
                 "user": user,
                 "plan": plan_info,
@@ -873,7 +873,7 @@ async def bulk_import(
     async with async_session() as db:
         count_q = select(func.count(Site.id)).where(Site.user_id == user.id)
         count = (await db.execute(count_q)).scalar() or 0
-        remaining = plan_info["max_sites"] - count
+        remaining = plan_info["max_sites"] - count if plan_info["max_sites"] != -1 else 999999
 
         reader = csv.reader(io.StringIO(import_data))
         added = 0
@@ -1526,6 +1526,8 @@ async def api_v1_status(request: Request, authorization: str = Header(None)):
         await db.commit()
 
     plan_limit = PLANS[user.plan]["max_sites"]
+    if plan_limit == -1:
+        plan_limit = "unlimited"
     async with async_session() as db:
         sites_q = select(Site).where(Site.user_id == user.id)
         sites = (await db.execute(sites_q)).scalars().all()
