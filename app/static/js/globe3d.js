@@ -1,13 +1,12 @@
 /**
  * SiteWatch 3D Tactical HUD Background
  * Three.js Cybersecurity Globe — MW3 Style
- * Full-screen fixed background, auto-rotate, breathing camera
+ * Reusable for landing + dashboard
  */
 (function () {
-    const container = document.getElementById('globe-bg');
+    var container = document.getElementById('globe-bg');
     if (!container) return;
 
-    /* ── CDN inject ─────────────────────────────────────────── */
     if (!window.THREE) {
         var s = document.createElement('script');
         s.src = 'https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.min.js';
@@ -18,68 +17,83 @@
     }
 
     function initGlobe() {
-        const THREE = window.THREE;
-        const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth < 768;
+        var THREE = window.THREE;
+        var isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth < 768;
+        var isDashboard = container.getAttribute('data-dashboard') === 'true';
 
-        /* ── Scene ───────────────────────────────────────────── */
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x050505);
+        var scene = new THREE.Scene();
+        scene.background = null;
 
-        /* ── Camera ──────────────────────────────────────────── */
-        const camera = new THREE.PerspectiveCamera(
-            isMobile ? 55 : 45,
-            window.innerWidth / window.innerHeight,
-            0.1,
-            1000
+        var camera = new THREE.PerspectiveCamera(
+            isMobile ? 60 : 48,
+            container.clientWidth / container.clientHeight,
+            0.1, 1000
         );
-        camera.position.z = isMobile ? 4.2 : 3.4;
+        camera.position.z = isMobile ? 4.0 : 3.2;
 
-        /* ── Renderer ────────────────────────────────────────── */
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setClearColor(0x000000, 0);
         container.appendChild(renderer.domElement);
 
-        /* ── Colors ──────────────────────────────────────────── */
-        const SAFE = new THREE.Color(0x00ff66);
-        const DANGER = new THREE.Color(0xff0000);
-        const DIM = new THREE.Color(0x00ff66);
+        var SAFE = new THREE.Color(0x00ff66);
+        var DANGER = new THREE.Color(0xff0000);
+
+        var globeRadius = 1.4;
+        var globeGroup = new THREE.Group();
+        scene.add(globeGroup);
 
         /* ── Globe wireframe ─────────────────────────────────── */
-        const globeRadius = 1.6;
-        const globeGeo = new THREE.SphereGeometry(globeRadius, 40, 30);
-        const globeMat = new THREE.MeshBasicMaterial({
-            color: SAFE,
-            wireframe: true,
-            transparent: true,
-            opacity: 0.07
+        var globeGeo = new THREE.SphereGeometry(globeRadius, 42, 28);
+        var globeMat = new THREE.MeshBasicMaterial({
+            color: SAFE, wireframe: true, transparent: true, opacity: 0.08
         });
-        const globe = new THREE.Mesh(globeGeo, globeMat);
-        scene.add(globe);
+        var globe = new THREE.Mesh(globeGeo, globeMat);
+        globeGroup.add(globe);
 
-        /* ── Atmosphere ring ─────────────────────────────────── */
-        const atmoGeo = new THREE.SphereGeometry(globeRadius * 1.04, 60, 40);
-        const atmoMat = new THREE.MeshBasicMaterial({
-            color: SAFE,
-            wireframe: true,
-            transparent: true,
-            opacity: 0.03
+        /* ── Atmosphere ──────────────────────────────────────── */
+        var atmoGeo = new THREE.SphereGeometry(globeRadius * 1.03, 50, 35);
+        var atmoMat = new THREE.MeshBasicMaterial({
+            color: SAFE, wireframe: true, transparent: true, opacity: 0.025
         });
-        const atmosphere = new THREE.Mesh(atmoGeo, atmoMat);
-        scene.add(atmosphere);
+        var atmosphere = new THREE.Mesh(atmoGeo, atmoMat);
+        globeGroup.add(atmosphere);
+
+        /* ── Surface dots (Fibonacci sphere) ─────────────────── */
+        var dotCount = isMobile ? 120 : 280;
+        var surfaceDotGeo = new THREE.SphereGeometry(0.01, 4, 4);
+        var surfaceDotMat = new THREE.MeshBasicMaterial({
+            color: SAFE, transparent: true, opacity: 0.5
+        });
+        var surfaceDots = [];
+        var goldenAngle = Math.PI * (3 - Math.sqrt(5));
+
+        for (var i = 0; i < dotCount; i++) {
+            var y = 1 - (i / (dotCount - 1)) * 2;
+            var radiusAtY = Math.sqrt(1 - y * y);
+            var theta = goldenAngle * i;
+            var x = Math.cos(theta) * radiusAtY;
+            var z = Math.sin(theta) * radiusAtY;
+
+            var dot = new THREE.Mesh(surfaceDotGeo, surfaceDotMat.clone());
+            dot.position.set(x * globeRadius * 1.003, y * globeRadius * 1.003, z * globeRadius * 1.003);
+            globeGroup.add(dot);
+            surfaceDots.push({ mesh: dot, baseOpacity: 0.3 + Math.random() * 0.35, idx: i });
+        }
 
         /* ── Cities data ─────────────────────────────────────── */
         function latLonToVec3(lat, lon, r) {
-            const phi = (90 - lat) * (Math.PI / 180);
-            const theta = (lon + 180) * (Math.PI / 180);
+            var phi = (90 - lat) * (Math.PI / 180);
+            var theta = (lon + 180) * (Math.PI / 180);
             return new THREE.Vector3(
                 -r * Math.sin(phi) * Math.cos(theta),
-                 r * Math.cos(phi),
-                 r * Math.sin(phi) * Math.sin(theta)
+                r * Math.cos(phi),
+                r * Math.sin(phi) * Math.sin(theta)
             );
         }
 
-        const cities = [
+        var cities = [
             { name: 'Algiers',      lat: 36.75,  lon: 3.04,    safe: true  },
             { name: 'New York',     lat: 40.71,  lon: -74.00,  safe: true  },
             { name: 'London',       lat: 51.51,  lon: -0.13,   safe: true  },
@@ -102,26 +116,25 @@
             { name: 'Istanbul',     lat: 41.01,  lon: 28.98,   safe: true  }
         ];
 
-        /* ── Node dots ───────────────────────────────────────── */
-        const nodeGroup = new THREE.Group();
-        scene.add(nodeGroup);
+        /* ── City node dots (bigger, with glow) ──────────────── */
+        var nodeGroup = new THREE.Group();
+        globeGroup.add(nodeGroup);
 
-        const dotGeo = new THREE.SphereGeometry(isMobile ? 0.022 : 0.028, 8, 8);
+        var dotGeo = new THREE.SphereGeometry(isMobile ? 0.024 : 0.03, 8, 8);
 
-        const nodes = cities.map(function (c) {
-            const col = c.safe ? SAFE.clone() : DANGER.clone();
-            const mat = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.95 });
-            const dot = new THREE.Mesh(dotGeo, mat);
-            const pos = latLonToVec3(c.lat, c.lon, globeRadius * 1.005);
+        var nodes = cities.map(function (c) {
+            var col = c.safe ? SAFE.clone() : DANGER.clone();
+            var mat = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.95 });
+            var dot = new THREE.Mesh(dotGeo, mat);
+            var pos = latLonToVec3(c.lat, c.lon, globeRadius * 1.005);
             dot.position.copy(pos);
             nodeGroup.add(dot);
 
-            /* glow ring */
-            const ringGeo = new THREE.RingGeometry(0.035, 0.06, 24);
-            const ringMat = new THREE.MeshBasicMaterial({
+            var ringGeo = new THREE.RingGeometry(0.038, 0.065, 24);
+            var ringMat = new THREE.MeshBasicMaterial({
                 color: col, transparent: true, opacity: 0.35, side: THREE.DoubleSide
             });
-            const ring = new THREE.Mesh(ringGeo, ringMat);
+            var ring = new THREE.Mesh(ringGeo, ringMat);
             ring.position.copy(pos);
             ring.lookAt(new THREE.Vector3(0, 0, 0));
             nodeGroup.add(ring);
@@ -130,12 +143,11 @@
         });
 
         /* ── Connections ─────────────────────────────────────── */
-        const lineGroup = new THREE.Group();
-        scene.add(lineGroup);
+        var lineGroup = new THREE.Group();
+        globeGroup.add(lineGroup);
 
         function buildConnections() {
             while (lineGroup.children.length) lineGroup.remove(lineGroup.children[0]);
-
             var maxLines = isMobile ? 5 : 25;
             var drawn = 0;
 
@@ -144,70 +156,50 @@
                     var dlat = cities[i].lat - cities[j].lat;
                     var dlon = cities[i].lon - cities[j].lon;
                     var dist = Math.sqrt(dlat * dlat + dlon * dlon);
-                    if (dist > 65) continue;
-                    if (Math.random() < 0.3) continue;
+                    if (dist > 65 || Math.random() < 0.3) continue;
 
                     var bothSafe = cities[i].safe && cities[j].safe;
                     var col = bothSafe ? SAFE : DANGER;
 
-                    var pts = [];
                     var p1 = latLonToVec3(cities[i].lat, cities[i].lon, globeRadius * 1.005);
                     var p2 = latLonToVec3(cities[j].lat, cities[j].lon, globeRadius * 1.005);
                     var mid = new THREE.Vector3().addVectors(p1, p2).multiplyScalar(0.5);
-                    mid.normalize().multiplyScalar(globeRadius * 1.18);
-
+                    mid.normalize().multiplyScalar(globeRadius * 1.2);
                     var curve = new THREE.QuadraticBezierCurve3(p1, mid, p2);
-                    var segs = isMobile ? 16 : 28;
-                    pts = curve.getPoints(segs);
 
+                    var pts = curve.getPoints(isMobile ? 16 : 28);
                     var geo = new THREE.BufferGeometry().setFromPoints(pts);
                     var mat = new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: 0.35 });
-                    var line = new THREE.Line(geo, mat);
-                    lineGroup.add(line);
-                    drawn++;
+                    lineGroup.add(new THREE.Line(geo, mat));
 
-                    /* animated pulse dot on the line */
                     var pulseGeo = new THREE.SphereGeometry(0.012, 6, 6);
                     var pulseMat = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.8 });
                     var pulse = new THREE.Mesh(pulseGeo, pulseMat);
-                    lineGroup.add(pulse);
-
                     pulse.userData = { curve: curve, t: Math.random(), speed: 0.002 + Math.random() * 0.004 };
+                    lineGroup.add(pulse);
+                    drawn++;
                 }
             }
         }
         buildConnections();
 
-        /* ── Particles ───────────────────────────────────────── */
-        var pCount = isMobile ? 150 : 350;
+        /* ── Floating particles ──────────────────────────────── */
+        var pCount = isMobile ? 80 : 200;
         var pGeo = new THREE.BufferGeometry();
-        var pPositions = new Float32Array(pCount * 3);
-        var pSizes = new Float32Array(pCount);
+        var pPos = new Float32Array(pCount * 3);
         for (var i = 0; i < pCount; i++) {
-            pPositions[i * 3]     = (Math.random() - 0.5) * 10;
-            pPositions[i * 3 + 1] = (Math.random() - 0.5) * 10;
-            pPositions[i * 3 + 2] = (Math.random() - 0.5) * 10;
-            pSizes[i] = Math.random() * 1.5 + 0.5;
+            pPos[i * 3]     = (Math.random() - 0.5) * 8;
+            pPos[i * 3 + 1] = (Math.random() - 0.5) * 8;
+            pPos[i * 3 + 2] = (Math.random() - 0.5) * 8;
         }
-        pGeo.setAttribute('position', new THREE.BufferAttribute(pPositions, 3));
-        pGeo.setAttribute('size', new THREE.BufferAttribute(pSizes, 1));
-
+        pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
         var pMat = new THREE.PointsMaterial({
-            color: 0x00ff66,
-            size: 0.015,
-            transparent: true,
-            opacity: 0.25,
-            sizeAttenuation: true
+            color: 0x00ff66, size: 0.012, transparent: true, opacity: 0.2, sizeAttenuation: true
         });
         var particles = new THREE.Points(pGeo, pMat);
         scene.add(particles);
 
-        /* ── Lights for danger glow ──────────────────────────── */
-        var dangerLight = new THREE.PointLight(0xff0000, 1.5, 4);
-        dangerLight.position.set(0, 0, 0);
-        scene.add(dangerLight);
-
-        /* ── Animation loop ──────────────────────────────────── */
+        /* ── Animation ───────────────────────────────────────── */
         var clock = new THREE.Clock();
         var breathBase = camera.position.z;
 
@@ -215,40 +207,33 @@
             requestAnimationFrame(animate);
             var t = clock.getElapsedTime();
 
-            /* globe rotate */
-            globe.rotation.y += 0.0015;
-            globe.rotation.x = Math.sin(t * 0.1) * 0.05;
-            atmosphere.rotation.y = globe.rotation.y * 0.98;
-            atmosphere.rotation.x = globe.rotation.x;
-            nodeGroup.rotation.y = globe.rotation.y;
-            nodeGroup.rotation.x = globe.rotation.x;
+            globeGroup.rotation.y += 0.0012;
+            globeGroup.rotation.x = Math.sin(t * 0.08) * 0.04;
 
-            /* breathing camera */
-            camera.position.z = breathBase + Math.sin(t * 0.4) * 0.06;
-            camera.position.y = Math.sin(t * 0.25) * 0.03;
+            camera.position.z = breathBase + Math.sin(t * 0.35) * 0.05;
+            camera.position.y = Math.sin(t * 0.2) * 0.02;
 
-            /* pulse danger nodes */
             nodes.forEach(function (n) {
                 if (!n.city.safe) {
                     var s = 1 + Math.sin(t * 4) * 0.4;
                     n.dot.scale.set(s, s, s);
                     n.ringMat.opacity = 0.2 + Math.sin(t * 4) * 0.3;
-                    n.dot.material.opacity = 0.6 + Math.sin(t * 4) * 0.4;
                 }
             });
 
-            /* animate pulse dots along lines */
+            surfaceDots.forEach(function (d) {
+                d.mesh.material.opacity = d.baseOpacity + Math.sin(t * 1.5 + d.idx * 0.5) * 0.15;
+            });
+
             lineGroup.children.forEach(function (child) {
                 if (child.userData && child.userData.curve) {
                     child.userData.t += child.userData.speed;
                     if (child.userData.t > 1) child.userData.t = 0;
-                    var pt = child.userData.curve.getPointAt(child.userData.t);
-                    child.position.copy(pt);
+                    child.position.copy(child.userData.curve.getPointAt(child.userData.t));
                 }
             });
 
-            /* particles drift */
-            particles.rotation.y += 0.0003;
+            particles.rotation.y += 0.0002;
             particles.rotation.x += 0.0001;
 
             renderer.render(scene, camera);
@@ -257,29 +242,30 @@
 
         /* ── Resize ──────────────────────────────────────────── */
         window.addEventListener('resize', function () {
-            camera.aspect = window.innerWidth / window.innerHeight;
+            var w = container.clientWidth;
+            var h = container.clientHeight;
+            camera.aspect = w / h;
             camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.setSize(w, h);
         });
 
-        /* ── Public API for status updates ───────────────────── */
+        /* ── Public API ──────────────────────────────────────── */
         window.SiteWatchGlobe3D = {
-            setCityStatus: function (cityName, isSafe) {
-                var node = nodes.find(function (n) { return n.city.name === cityName; });
-                if (!node) return;
-                node.city.safe = isSafe;
-                var col = isSafe ? SAFE : DANGER;
-                node.mat.color.copy(col);
-                node.ringMat.color.copy(col);
+            setCityStatus: function (name, safe) {
+                var n = nodes.find(function (x) { return x.city.name === name; });
+                if (!n) return;
+                n.city.safe = safe;
+                var c = safe ? SAFE : DANGER;
+                n.mat.color.copy(c);
+                n.ringMat.color.copy(c);
                 buildConnections();
             },
-            setAllStatus: function (isSafe) {
-                cities.forEach(function (c) { c.safe = isSafe; });
+            setAllStatus: function (safe) {
+                cities.forEach(function (c) { c.safe = safe; });
                 nodes.forEach(function (n) {
-                    var col = isSafe ? SAFE : DANGER;
-                    n.mat.color.copy(col);
-                    n.ringMat.color.copy(col);
+                    var c = safe ? SAFE : DANGER;
+                    n.mat.color.copy(c);
+                    n.ringMat.color.copy(c);
                 });
                 buildConnections();
             }

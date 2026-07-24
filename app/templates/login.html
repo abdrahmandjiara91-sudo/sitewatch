@@ -5,24 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Website Monitor</title>
     <link rel="manifest" href="/static/manifest.json">
-    <meta name="theme-color" content="#2563eb">
+    <meta name="theme-color" content="#050505">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="apple-touch-icon" href="/static/icon-192.png">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .auth-card { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 2.5rem; width: 100%; max-width: 420px; }
-        .auth-card h1 { text-align: center; font-size: 1.8rem; margin-bottom: 0.3rem; color: #38bdf8; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #050505; background-image: linear-gradient(rgba(0,255,102,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,102,0.02) 1px, transparent 1px); background-size: 40px 40px; color: #e2e8f0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .auth-card { background: rgba(10,10,10,0.85); border: 1px solid rgba(0,255,102,0.12); border-radius: 4px; padding: 2.5rem; width: 100%; max-width: 420px; }
+        .auth-card h1 { text-align: center; font-size: 1.8rem; margin-bottom: 0.3rem; color: #00ff66; }
         .auth-card .subtitle { text-align: center; color: #64748b; margin-bottom: 2rem; font-size: 0.9rem; }
         .form-group { margin-bottom: 1rem; }
         .form-group label { display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.4rem; }
-        .form-group input { width: 100%; background: #0f172a; border: 1px solid #475569; color: #e2e8f0; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.95rem; outline: none; transition: border-color 0.2s; }
-        .form-group input:focus { border-color: #38bdf8; }
-        .btn { width: 100%; background: #2563eb; color: #fff; border: none; padding: 0.8rem; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-        .btn:hover { background: #3b82f6; }
-        .error { background: #7f1d1d; color: #fca5a5; padding: 0.75rem; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1rem; text-align: center; }
+        .form-group input { width: 100%; background: #050505; border: 1px solid rgba(0,255,102,0.12); color: #e2e8f0; padding: 0.75rem 1rem; border-radius: 4px; font-size: 0.95rem; outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+        .form-group input:focus { border-color: #00ff66; box-shadow: 0 0 10px rgba(0,255,102,0.15); }
+        .btn { width: 100%; background: #00ff66; color: #050505; border: none; padding: 0.8rem; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 1rem; font-weight: 700; text-transform: uppercase; cursor: pointer; transition: box-shadow 0.2s; }
+        .btn:hover { box-shadow: 0 0 15px rgba(0,255,102,0.3); }
+        .error { background: rgba(255,68,68,0.1); color: #ff4444; padding: 0.75rem; border-radius: 4px; font-size: 0.85rem; margin-bottom: 1rem; text-align: center; border: 1px solid rgba(255,68,68,0.2); }
         .links { text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: #64748b; }
-        .links a { color: #38bdf8; text-decoration: none; }
+        .links a { color: #00ff66; text-decoration: none; }
         .links a:hover { text-decoration: underline; }
     </style>
 </head>
@@ -52,7 +52,7 @@
             Don't have an account? <a href="/register">Create one</a>
         </div>
         <div class="links" style="margin-top: 0.5rem;">
-            <a href="/forgot-password" style="color: #64748b;">Forgot password?</a>
+            <a href="/forgot-password" style="color: #94a3b8;">Forgot password?</a>
         </div>
     </div>
     <script>
