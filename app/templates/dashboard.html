@@ -72,6 +72,18 @@
         .mobile-sidebar-footer button { width: 100%; text-align: left; background: transparent; border: none; color: var(--red); padding: 0.75rem 1.5rem; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 0.75rem; }
 
         .container { max-width: 1200px; margin: 1.5rem auto; padding: 0 1rem; }
+        .globe-section {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            overflow: hidden;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--card);
+            margin-bottom: 1.5rem;
+        }
+        .globe-section canvas { width: 100%; height: 100%; }
+        @media (max-width: 768px) { .globe-section { height: 200px; } }
 
         .plan-bar { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.5rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; transition: background 0.3s; }
         .plan-bar .plan-text { font-size: 0.9rem; color: var(--muted); }
@@ -213,6 +225,7 @@
     </div>
 
     <div class="container">
+        <div class="globe-section"><canvas id="globe-canvas"></canvas></div>
         <div class="plan-bar">
             <div class="plan-text">
                 <strong>{{ plan.name }} {{ t.plan }}</strong> &mdash; {{ sites_count }}/{{ max_sites }} {{ t.sites_monitored }}
@@ -407,6 +420,17 @@
             } catch(e) {}
         })();
         {% endif %}
+    </script>
+    <script src="/static/js/globe.js"></script>
+    <script>
+        window.monitoringSites = [
+            {% for site in sites %}
+            {
+                name: "{{ site.name }}",
+                status: "{{ 'up' if site.last_check and site.last_check.is_up else 'down' }}"
+            }{% if not loop.last %},{% endif %}
+            {% endfor %}
+        ];
     </script>
 </body>
 </html>
