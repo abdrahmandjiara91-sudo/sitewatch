@@ -84,6 +84,8 @@
         }
         #globe-bg { width: 100%; height: 100%; position: relative; min-height: 300px; }
         #globe-bg canvas { display: block; width: 100% !important; height: 100% !important; }
+        .globe-section svg { animation: globeSpin 30s linear infinite; transform-origin: center; }
+        @keyframes globeSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @media (max-width: 768px) { .globe-section { height: 200px; } }
 
         .plan-bar { background: rgba(5,5,5,0.7); border: 1px solid rgba(0,255,102,0.12); border-radius: 8px; padding: 1rem 1.5rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; backdrop-filter: blur(5px); }
