@@ -1,5 +1,5 @@
 /**
- * SiteWatch Professional Globe v2
+ * UptimeNode Professional Globe v2
  * Wireframe globe with green/red connection lines
  * 20 cities including Algiers
  */
@@ -278,7 +278,7 @@
         window.addEventListener('resize', resize);
     }
 
-    window.SiteWatchGlobe = {
+    window.UptimeNodeGlobe = {
         setSites: function(s) { sites = s; }
     };
 

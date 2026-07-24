@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sitewatch-v1';
+const CACHE_NAME = 'uptimenode-v1';
 const STATIC_ASSETS = [
     '/manifest.json',
     '/static/icon-192.png',

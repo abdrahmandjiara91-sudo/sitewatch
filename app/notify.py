@@ -64,7 +64,7 @@ def _send_email_sync(email, subject, html, plain=""):
 def _send_down_email_sync(email, site_name, site_url, checked_at):
     html = f"""
     <div style="font-family: 'Segoe UI', sans-serif; max-width: 480px; margin: 0 auto; background: #0f172a; padding: 40px; border-radius: 16px;">
-        <h1 style="color: #ef4444; text-align: center; margin: 0;">SiteWatch</h1>
+        <h1 style="color: #ef4444; text-align: center; margin: 0;">UptimeNode</h1>
         <p style="color: #94a3b8; text-align: center;">Site Down Alert</p>
         <div style="background: #1e293b; border-radius: 12px; padding: 30px; text-align: center; margin: 20px 0;">
             <div style="font-size: 3rem; margin-bottom: 1rem;">&#128680;</div>
@@ -72,32 +72,32 @@ def _send_down_email_sync(email, site_name, site_url, checked_at):
             <p style="color: #e2e8f0;">URL: {site_url}</p>
             <p style="color: #64748b; font-size: 13px;">Detected at: {checked_at}</p>
         </div>
-        <p style="color: #475569; font-size: 12px; text-align: center;">SiteWatch Monitor</p>
+        <p style="color: #475569; font-size: 12px; text-align: center;">UptimeNode Monitor</p>
     </div>
     """
-    return _send_email(email, "SiteWatch Alert: Site is DOWN", html, f"{site_name} is DOWN! URL: {site_url}")
+    return _send_email(email, "UptimeNode Alert: Site is DOWN", html, f"{site_name} is DOWN! URL: {site_url}")
 
 
 def _send_up_email_sync(email, site_name, site_url):
     html = f"""
     <div style="font-family: 'Segoe UI', sans-serif; max-width: 480px; margin: 0 auto; background: #0f172a; padding: 40px; border-radius: 16px;">
-        <h1 style="color: #22c55e; text-align: center; margin: 0;">SiteWatch</h1>
+        <h1 style="color: #22c55e; text-align: center; margin: 0;">UptimeNode</h1>
         <p style="color: #94a3b8; text-align: center;">Site Back Online</p>
         <div style="background: #1e293b; border-radius: 12px; padding: 30px; text-align: center; margin: 20px 0;">
             <div style="font-size: 3rem; margin-bottom: 1rem;">&#9989;</div>
             <p style="color: #22c55e; font-size: 18px; font-weight: bold;">{site_name} is back UP</p>
             <p style="color: #e2e8f0;">URL: {site_url}</p>
         </div>
-        <p style="color: #475569; font-size: 12px; text-align: center;">SiteWatch Monitor</p>
+        <p style="color: #475569; font-size: 12px; text-align: center;">UptimeNode Monitor</p>
     </div>
     """
-    return _send_email(email, "SiteWatch: Site is back UP", html, f"{site_name} is back UP! URL: {site_url}")
+    return _send_email(email, "UptimeNode: Site is back UP", html, f"{site_name} is back UP! URL: {site_url}")
 
 
 def _send_slow_email_sync(email, site_name, site_url, response_ms, threshold):
     html = f"""
     <div style="font-family: 'Segoe UI', sans-serif; max-width: 480px; margin: 0 auto; background: #0f172a; padding: 40px; border-radius: 16px;">
-        <h1 style="color: #facc15; text-align: center; margin: 0;">SiteWatch</h1>
+        <h1 style="color: #facc15; text-align: center; margin: 0;">UptimeNode</h1>
         <p style="color: #94a3b8; text-align: center;">Slow Response Alert</p>
         <div style="background: #1e293b; border-radius: 12px; padding: 30px; text-align: center; margin: 20px 0;">
             <div style="font-size: 3rem; margin-bottom: 1rem;">&#128553;</div>
@@ -106,10 +106,10 @@ def _send_slow_email_sync(email, site_name, site_url, response_ms, threshold):
             <p style="color: #facc15; font-size: 24px; font-weight: bold;">{response_ms}ms</p>
             <p style="color: #64748b; font-size: 13px;">Threshold: {threshold}ms</p>
         </div>
-        <p style="color: #475569; font-size: 12px; text-align: center;">SiteWatch Monitor</p>
+        <p style="color: #475569; font-size: 12px; text-align: center;">UptimeNode Monitor</p>
     </div>
     """
-    return _send_email(email, f"SiteWatch: {site_name} is slow ({response_ms}ms)", html, f"{site_name} is slow! Response: {response_ms}ms")
+    return _send_email(email, f"UptimeNode: {site_name} is slow ({response_ms}ms)", html, f"{site_name} is slow! Response: {response_ms}ms")
 
 
 def _send_monthly_report_email_sync(email, username, stats):
@@ -126,7 +126,7 @@ def _send_monthly_report_email_sync(email, username, stats):
 
     html = f"""
     <div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; background: #0f172a; padding: 40px; border-radius: 16px;">
-        <h1 style="color: #38bdf8; text-align: center; margin: 0;">SiteWatch</h1>
+        <h1 style="color: #38bdf8; text-align: center; margin: 0;">UptimeNode</h1>
         <p style="color: #94a3b8; text-align: center;">Monthly Uptime Report - {stats['month']}</p>
         <div style="background: #1e293b; border-radius: 12px; padding: 20px; margin: 20px 0;">
             <div style="display: flex; justify-content: space-around; text-align: center; margin-bottom: 20px;">
@@ -144,10 +144,10 @@ def _send_monthly_report_email_sync(email, username, stats):
                 {sites_html}
             </table>
         </div>
-        <p style="color: #475569; font-size: 12px; text-align: center;">SiteWatch Monitor</p>
+        <p style="color: #475569; font-size: 12px; text-align: center;">UptimeNode Monitor</p>
     </div>
     """
-    return _send_email(email, f"SiteWatch Monthly Report - {stats['month']}", html, f"Monthly report: {stats['total_sites']} sites, {stats['overall_uptime']}% uptime")
+    return _send_email(email, f"UptimeNode Monthly Report - {stats['month']}", html, f"Monthly report: {stats['total_sites']} sites, {stats['overall_uptime']}% uptime")
 
 
 async def _notify_all_channels(user, site, message, plain_msg, event_type="custom"):
@@ -158,7 +158,7 @@ async def _notify_all_channels(user, site, message, plain_msg, event_type="custo
 
     if user.notify_email and user.email:
         try:
-            await asyncio.to_thread(_send_email_sync, user.email, f"SiteWatch: {site.name} - {event_type}", f"<p>{plain_msg}</p>", plain_msg)
+            await asyncio.to_thread(_send_email_sync, user.email, f"UptimeNode: {site.name} - {event_type}", f"<p>{plain_msg}</p>", plain_msg)
         except Exception:
             pass
 

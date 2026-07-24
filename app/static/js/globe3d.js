@@ -1,5 +1,5 @@
 /**
- * SiteWatch 3D Tactical HUD Background
+ * UptimeNode 3D Tactical HUD Background
  * Three.js Cybersecurity Globe — MW3 Style
  * Reusable for landing + dashboard
  */
@@ -253,7 +253,7 @@
         });
 
         /* ── Public API ──────────────────────────────────────── */
-        window.SiteWatchGlobe3D = {
+        window.UptimeNodeGlobe3D = {
             setCityStatus: function (name, safe) {
                 var n = nodes.find(function (x) { return x.city.name === name; });
                 if (!n) return;

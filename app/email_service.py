@@ -33,7 +33,7 @@ SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
 SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
 EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS", "")
 EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD", "")
-FROM_NAME = os.getenv("FROM_NAME", "SiteWatch")
+FROM_NAME = os.getenv("FROM_NAME", "UptimeNode")
 RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
 
 
@@ -99,10 +99,10 @@ def _send_email(to_email: str, subject: str, html: str, text: str) -> bool:
 def send_verification_code(to_email: str, code: str, username: str) -> bool:
     if not _is_configured():
         return False
-    subject = "Verify your SiteWatch account"
+    subject = "Verify your UptimeNode account"
     html = f"""
     <div style="font-family: 'Segoe UI', sans-serif; max-width: 480px; margin: 0 auto; background: #0f172a; padding: 40px; border-radius: 16px;">
-        <h1 style="color: #3b82f6; text-align: center; margin: 0;">SiteWatch</h1>
+        <h1 style="color: #3b82f6; text-align: center; margin: 0;">UptimeNode</h1>
         <p style="color: #94a3b8; text-align: center;">Email Verification</p>
         <div style="background: #1e293b; border-radius: 12px; padding: 30px; text-align: center; margin: 20px 0;">
             <p style="color: #e2e8f0; font-size: 16px;">Hello {username},</p>
@@ -113,17 +113,17 @@ def send_verification_code(to_email: str, code: str, username: str) -> bool:
         <p style="color: #475569; font-size: 12px; text-align: center;">If you did not create this account, ignore this email.</p>
     </div>
     """
-    text = f"Your SiteWatch verification code is: {code}\nThis code expires in 15 minutes."
+    text = f"Your UptimeNode verification code is: {code}\nThis code expires in 15 minutes."
     return _send_email(to_email, subject, html, text)
 
 
 def send_password_reset_code(to_email: str, code: str, username: str) -> bool:
     if not _is_configured():
         return False
-    subject = "Reset your SiteWatch password"
+    subject = "Reset your UptimeNode password"
     html = f"""
     <div style="font-family: 'Segoe UI', sans-serif; max-width: 480px; margin: 0 auto; background: #0f172a; padding: 40px; border-radius: 16px;">
-        <h1 style="color: #3b82f6; text-align: center; margin: 0;">SiteWatch</h1>
+        <h1 style="color: #3b82f6; text-align: center; margin: 0;">UptimeNode</h1>
         <p style="color: #94a3b8; text-align: center;">Password Reset</p>
         <div style="background: #1e293b; border-radius: 12px; padding: 30px; text-align: center; margin: 20px 0;">
             <p style="color: #e2e8f0; font-size: 16px;">Hello {username},</p>
@@ -134,5 +134,5 @@ def send_password_reset_code(to_email: str, code: str, username: str) -> bool:
         <p style="color: #475569; font-size: 12px; text-align: center;">If you did not request this, ignore this email.</p>
     </div>
     """
-    text = f"Your SiteWatch password reset code is: {code}\nThis code expires in 15 minutes."
+    text = f"Your UptimeNode password reset code is: {code}\nThis code expires in 15 minutes."
     return _send_email(to_email, subject, html, text)

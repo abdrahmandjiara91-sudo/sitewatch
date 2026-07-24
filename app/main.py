@@ -1361,7 +1361,7 @@ async def backup_download(request: Request, user: User = Depends(require_auth)):
             with open(tmp_path, "rb") as f:
                 yield from f
             os.unlink(tmp_path)
-        filename = "sitewatch_backup.db"
+        filename = "uptimenode_backup.db"
         return StreamingResponse(
             iter_file(),
             media_type="application/octet-stream",
@@ -1393,7 +1393,7 @@ async def backup_download(request: Request, user: User = Depends(require_auth)):
                          (c.error_message or "")[:200], c.checked_at.strftime("%Y-%m-%d %H:%M") if c.checked_at else ""])
 
     output.seek(0)
-    filename = "sitewatch_backup.csv"
+    filename = "uptimenode_backup.csv"
     return StreamingResponse(
         iter([output.getvalue()]),
         media_type="text/csv",

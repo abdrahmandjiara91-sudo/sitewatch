@@ -3,9 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SiteWatch - Website Uptime Monitor</title>
+    <title>UptimeNode - Uptime &amp; Performance Monitoring</title>
     <link rel="manifest" href="/static/manifest.json">
-    <meta name="theme-color" content="#2563eb">
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <meta name="theme-color" content="#050505">
+    <meta name="description" content="UptimeNode - Monitor your websites and servers 24/7. Get instant alerts via Email, Telegram, Slack, Discord when your site goes down.">
+    <meta property="og:title" content="UptimeNode - Uptime &amp; Performance Monitoring">
+    <meta property="og:description" content="Monitor your websites and servers 24/7. Get instant alerts when something goes wrong.">
+    <meta property="og:site_name" content="UptimeNode">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="/static/icon-192.png">
@@ -161,7 +166,7 @@
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
     <nav class="mobile-sidebar" id="mobileSidebar">
         <div class="mobile-sidebar-header">
-            <h2>&#9202; SiteWatch</h2>
+            <a href="/" style="text-decoration:none;"><img src="/static/logo.svg" alt="UptimeNode" height="28"></a>
             <button class="mobile-sidebar-close" onclick="closeSidebar()">&times;</button>
         </div>
         <div class="mobile-sidebar-nav">
@@ -181,7 +186,7 @@
     </nav>
 
     <nav class="nav">
-        <div class="nav-brand">&#9202; SiteWatch</div>
+        <a href="/" style="display:flex; align-items:center; gap:0.5rem; text-decoration:none;"><img src="/static/logo.svg" alt="UptimeNode" height="36"></a>
         <button class="hamburger" onclick="openSidebar()">&#9776;</button>
         <div class="nav-links">
             <a href="#features">Features</a>
@@ -201,7 +206,7 @@
     <section class="hero">
         <div class="hero-badge">FREE Forever Plan Available</div>
         <h1>Know When Your Site Goes <span>Down</span></h1>
-        <p>Monitor your websites 24/7. Get instant alerts when something goes wrong. Never lose a customer to downtime again.</p>
+        <p>UptimeNode monitors your websites &amp; servers 24/7. Get instant alerts when something goes wrong. Never lose a customer to downtime again.</p>
         <div class="hero-buttons">
             <a href="/register" class="btn btn-lg">Start Monitoring Free</a>
             <a href="#features" class="btn btn-outline btn-lg">Learn More</a>
@@ -230,13 +235,13 @@
     <section class="section" id="features">
         <div class="section-title">
             <h2>Everything You Need</h2>
-            <p>Simple, powerful website monitoring</p>
+            <p>Simple, powerful uptime &amp; performance monitoring</p>
         </div>
         <div class="features-grid">
             <div class="feature-card">
                 <div class="feature-icon">&#9889;</div>
                 <h3>Instant Alerts</h3>
-                <p>Get notified immediately via Email or Telegram when your site goes down or comes back up.</p>
+                <p>Get notified immediately via Email, Telegram, Slack, or Discord when your site goes down or comes back up.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">&#128274;</div>
@@ -285,7 +290,7 @@
             <div class="step">
                 <div class="step-num">3</div>
                 <h3>Get Notified</h3>
-                <p>Receive instant alerts via Email or Telegram the moment something goes wrong.</p>
+                <p>Receive instant alerts via Email, Telegram, Slack, or Discord the moment something goes wrong.</p>
             </div>
         </div>
     </section>
@@ -344,7 +349,7 @@
 
     <section class="section">
         <div class="section-title">
-            <h2>Why SiteWatch?</h2>
+            <h2>Why UptimeNode?</h2>
             <p>Compare us with others</p>
         </div>
         <div style="overflow-x:auto;">
@@ -352,7 +357,7 @@
             <thead>
                 <tr>
                     <th>Feature</th>
-                    <th class="highlight">SiteWatch</th>
+                    <th class="highlight">UptimeNode</th>
                     <th>UptimeRobot</th>
                     <th>Pingdom</th>
                     <th>StatusCake</th>
@@ -420,7 +425,7 @@
         </div>
         <div class="testimonials">
             <div class="testimonial">
-                <div class="testimonial-text">"SiteWatch saved my business. I got notified about downtime before my customers even noticed. The Telegram integration is amazing!"</div>
+                <div class="testimonial-text">"UptimeNode saved my business. I got notified about downtime before my customers even noticed. The Telegram integration is amazing!"</div>
                 <div class="testimonial-author">Ahmed K.</div>
                 <div class="testimonial-role">E-commerce Owner</div>
             </div>
@@ -453,7 +458,7 @@
             {% if not reviews %}
             <div class="review-card">
                 <div class="review-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-                <div class="review-text">"SiteWatch saved us from losing customers. We detected a critical outage in 2 minutes and fixed it before anyone noticed."</div>
+                <div class="review-text">"UptimeNode saved us from losing customers. We detected a critical outage in 2 minutes and fixed it before anyone noticed."</div>
                 <div class="review-author">— Happy User</div>
             </div>
             <div class="review-card">
@@ -493,7 +498,7 @@
     </section>
 
     <footer class="footer">
-        <p>&copy; 2026 SiteWatch. Built with care. &middot; <a href="/changelog" style="color: #3b82f6; text-decoration: none;">Changelog</a></p>
+        <p>&copy; 2026 UptimeNode. Built with care. &middot; <a href="/changelog" style="color: #3b82f6; text-decoration: none;">Changelog</a></p>
     </footer>
 
     <script>
