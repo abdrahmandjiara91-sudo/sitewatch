@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="dark" style="color-scheme: dark;">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -30,7 +30,7 @@
             --error-bg: rgba(255,0,0,0.1); --error-text: #ff6666;
             --sidebar-bg: rgba(5,5,5,0.95); --sidebar-hover: rgba(0,255,102,0.08); --sidebar-active: rgba(0,255,102,0.15);
         }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #050505; background-image: linear-gradient(rgba(0,255,102,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,102,0.02) 1px, transparent 1px); background-size: 40px 40px; color: var(--text); min-height: 100vh; display: flex; transition: background 0.3s, color 0.3s; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #050505; background-image: linear-gradient(rgba(0,255,102,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,102,0.02) 1px, transparent 1px); background-size: 40px 40px; color: var(--text); min-height: 100vh; display: flex; transition: background 0.3s, color 0.3s; color-scheme: dark; }
 
         .sidebar { width: 260px; min-height: 100vh; background: var(--sidebar-bg); border-right: 1px solid var(--border); padding: 1.5rem 0; position: fixed; top: 0; left: 0; transition: background 0.3s; display: flex; flex-direction: column; }
         .sidebar-brand { padding: 0 1.5rem 1.5rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem; }
@@ -69,7 +69,7 @@
         }
         .form-group input[type="text"]:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--accent); box-shadow: 0 0 8px rgba(0,255,102,0.15); }
         .form-group textarea { min-height: 80px; resize: vertical; font-family: monospace; font-size: 0.85rem; }
-        .form-group select { appearance: auto; }
+        .form-group select { background: #050505; color: var(--text); border: 1px solid rgba(0,255,102,0.2); padding: 0.6rem 0.8rem; border-radius: 4px; font-size: 0.9rem; outline: none; width: 100%; appearance: auto; }
 
         .toggle { position: relative; width: 44px; height: 24px; appearance: none; background: var(--border); border-radius: 4px; cursor: pointer; transition: background 0.3s; flex-shrink: 0; }
         .toggle:checked { background: var(--accent); }

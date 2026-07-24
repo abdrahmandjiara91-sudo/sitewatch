@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="dark" style="color-scheme: dark;">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -243,7 +243,7 @@
             </div>
             <form method="POST" action="/admin/self-plan" style="display:flex; gap:0.5rem; align-items:center;">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                <select name="plan" style="background:var(--input-bg); border:1px solid var(--input-border); color:var(--text); padding:0.4rem 0.6rem; border-radius:6px; font-size:0.85rem;">
+                <select name="plan" style="background:#050505; border:1px solid rgba(0,255,102,0.2); color:var(--text); padding:0.4rem 0.6rem; border-radius:4px; font-size:0.85rem; color-scheme: dark;">
                     <option value="free" {{ 'selected' if user.plan == 'free' }}>Free</option>
                     <option value="pro" {{ 'selected' if user.plan == 'pro' }}>Pro $9</option>
                     <option value="enterprise" {{ 'selected' if user.plan == 'enterprise' }}>Enterprise $29</option>
